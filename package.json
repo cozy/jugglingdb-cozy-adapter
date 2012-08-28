@@ -1,32 +1,40 @@
-{ "name": "cozy-jugglingdb-adapter",
+{
+  "name": "jugglingdb-cozy-adapter",
   "description": "adapter for jugglingdb required by cozy app based on railway",
-  "keywords": ["jugglingdb","adapter","cozycloud","node"],
+  "keywords": [
+    "jugglingdb",
+    "adapter",
+    "cozycloud",
+    "node"
+  ],
   "licenses": [
     {
       "type": "MIT",
       "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/LICENSE"
     }
   ],
-  "version": "0.0.2",
+  "version": "0.0.1",
   "homepage": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/",
-  "bugs": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/issues",
-  "author": "Cozy Cloud <contact@mycozycloud.com>",
+  "bugs": {
+    "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/issues"
+  },
+  "author": "Cozy Cloud <contact@mycozycloud.com> (http://mycozycloud.com)",
   "contributors": [],
   "engines": {
-    "node":">= 0.6",
+    "node": ">= 0.6",
     "npm": ">= 1.1"
   },
-  "main": "./lib/main.js",
+  "main": "./lib/cozy_data_system.js",
   "devDependencies": {
-    "coffee-script":"*"
+    "coffee-script": "*"
   },
   "scripts": {
     "prepublish": "coffee --compile --output lib/ src/"
   },
   "repository": {
-    "type" : "git",
-    "url" : "git://github.com/mycozycloud/jugglingdb-cozy-adapter/"
-  }
+    "type": "git",
+    "url": "git://github.com/mycozycloud/jugglingdb-cozy-adapter.git"
+  },
+  "dependencies": {},
+  "optionalDependencies": {}
 }
-
-
