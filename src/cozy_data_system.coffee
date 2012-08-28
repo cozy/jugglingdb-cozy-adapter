@@ -8,3 +8,6 @@ class CozyDataSystem
     constructor: ->
         @_models = {}
 
+
+    define: (descr) ->
+        @._models[descr.model.modelName] = descr
