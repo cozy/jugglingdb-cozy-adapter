@@ -30,6 +30,8 @@
   },
   "devDependencies": {
     "coffee-script": "*",
+    "request-json": "0.2.2",
+    "jugglingdb": "0.1.13",
     "chai": "*",
     "async": "*"
   },
