@@ -1,10 +1,10 @@
 
 exports.initialize = (schema, callback) ->
-  schema.adapter = new CozyDataSystem()
+  schema.adapter = new exports.CozyDataSystem()
   process.nextTick(callback)
 
 
-class CozyDataSystem
+class exports.CozyDataSystem
     constructor: ->
         @_models = {}
 
