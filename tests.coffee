@@ -200,10 +200,12 @@ describe "Delete", ->
             client.del "data/987/", (error, response, body) ->
                 done()
 
+
     describe "Deletes a document that is not in Database", ->
 
         it "When I delete Document with id 123", (done) ->
-            Note.destroy 123, (err) =>
+            note = new Note id:123
+            note.destroy (err) =>
                 @err = err
                 done()
 
@@ -213,7 +215,8 @@ describe "Delete", ->
     describe "Deletes a document from database", ->
 
         it "When I delete document with id 321", (done) ->
-            Note.destroy 321, (err) =>
+            note = new Note id:321
+            note.destroy (err) =>
                 @err = err
                 done()
 
