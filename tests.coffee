@@ -186,6 +186,57 @@ describe "Create", ->
                 done()
 
 
+
+describe "Update", ->
+
+    before (done) ->
+        data =
+            title: "my note"
+            content: "my content"
+            docType: "Note"
+
+        client.post 'data/321/', data, (error, response, body) ->
+            done()
+        @note = new Note data
+
+    after (done) ->
+        client.del "data/321/", (error, response, body) ->
+            done()
+
+
+    describe "Try to Update a Document that doesn't exist", ->
+        after ->
+            @err = null
+
+        it "When I update a document with id 123", (done) ->
+            @note.id = "123"
+            @note.save (err) =>
+                @err = err
+                done()
+
+        it "Then an error is returned", ->
+            should.exist @err
+
+    describe "Update a Document", ->
+
+        it "When I update document with id 321", (done) ->
+            @note.id = "321"
+            @note.title = "my new title"
+            @note.save (err) =>
+                @err = err
+                done()
+
+        it "Then no error is returned", ->
+            should.not.exist @err
+
+        it "And the old document must have been replaced in DB", (done) ->
+            Note.find @note.id, (err, updatedNote) =>
+                should.not.exist err
+                updatedNote.id.should.equal "321"
+                updatedNote.title.should.equal "my new title"
+                done()
+
+
 describe "Delete", ->
     before (done) ->
         client.post 'data/321/', {
