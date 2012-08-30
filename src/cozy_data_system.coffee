@@ -49,3 +49,14 @@ class exports.CozyDataSystem
                 callback new Error("Server error occured.")
             else
                 callback null, body._id
+
+    destroy: (model, id, callback) =>
+        @client.del "data/#{id}/", (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode == 404
+                callback new Error("Document not found")
+            else if response.statusCode != 204
+                callback new Error("Server error occured.")
+            else
+                callback()
