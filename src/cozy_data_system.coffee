@@ -56,6 +56,16 @@ class exports.CozyDataSystem
             else
                 callback null, body._id
 
+    save: (model, data, callback) ->
+        data.docType = model
+        @client.put "data/#{data.id}/", data, (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode == 404
+                callback new Error("Document not found")
+            else
+                callback()
+
 
     # Destroy model in database.
     # Call method like this:
