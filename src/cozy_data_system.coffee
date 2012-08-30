@@ -11,9 +11,11 @@ class exports.CozyDataSystem
         @_models = {}
         @client = new Client "http://localhost:7000/"
 
+    # Register Model to adapter
     define: (descr) ->
         @_models[descr.model.modelName] = descr
 
+    # Check existence of model in the data system.
     exists: (model, id, callback) =>
         @client.get "data/exist/#{id}/", (error, response, body) =>
             if error
@@ -23,6 +25,8 @@ class exports.CozyDataSystem
             else
                 callback null, body.exist
 
+    # Find a doc with its ID. Returns it if it is found else it
+    # returns null
     find: (model, id, callback) =>
          @client.get "data/#{id}/", (error, response, body) =>
             if error
@@ -34,6 +38,8 @@ class exports.CozyDataSystem
             else
                 callback null, new @_models[model].model(body)
 
+    # Create a new document from given data. If no ID is set a new one
+    # is automatically generated.
     create: (model, data, callback) =>
         path = "data/"
         if data.id?
@@ -50,6 +56,12 @@ class exports.CozyDataSystem
             else
                 callback null, body._id
 
+
+    # Destroy model in database.
+    # Call method like this:
+    #     note = new Note id: 123
+    #     note.destroy ->
+    #         ...
     destroy: (model, id, callback) =>
         @client.del "data/#{id}/", (error, response, body) =>
             if error
@@ -60,3 +72,5 @@ class exports.CozyDataSystem
                 callback new Error("Server error occured.")
             else
                 callback()
+
+
