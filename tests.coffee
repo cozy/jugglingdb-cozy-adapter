@@ -185,3 +185,43 @@ describe "Create", ->
                 note.content.should.equal "new note"
                 done()
 
+
+describe "Delete", ->
+    before (done) ->
+        client.post 'data/321/', {
+            title: "my note"
+            content: "my content"
+            docType: "Note"
+            } , (error, response, body) ->
+            done()
+
+    after (done) ->
+        client.del "data/321/", (error, response, body) ->
+            client.del "data/987/", (error, response, body) ->
+                done()
+
+    describe "Deletes a document that is not in Database", ->
+
+        it "When I delete Document with id 123", (done) ->
+            Note.destroy 123, (err) =>
+                @err = err
+                done()
+
+        it "Then an error should be returned", ->
+            should.exist @err
+
+    describe "Deletes a document from database", ->
+
+        it "When I delete document with id 321", (done) ->
+            Note.destroy 321, (err) =>
+                @err = err
+                done()
+
+        it "Then no error is returned", ->
+            should.not.exist @err
+
+        it "And Document with id 321 shouldn't exist in Database", (done) ->
+            Note.exists 321, (err, isExist) =>
+                isExist.should.not.be.ok
+                done()
+
