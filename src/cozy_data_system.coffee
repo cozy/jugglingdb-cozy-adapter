@@ -56,6 +56,7 @@ class exports.CozyDataSystem
             else
                 callback null, body._id
 
+    # Save all model attributes to DB.
     save: (model, data, callback) ->
         data.docType = model
         @client.put "data/#{data.id}/", data, (error, response, body) =>
@@ -63,8 +64,36 @@ class exports.CozyDataSystem
                 callback error
             else if response.statusCode == 404
                 callback new Error("Document not found")
+            else if response.statusCode != 200
+                callback new Error("Server error occured.")
             else
                 callback()
+
+    # Save only given attributes to DB.
+    updateAttributes: (model, id, data, callback) ->
+        @client.put "data/merge/#{id}/", data, (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode == 404
+                callback new Error("Document not found")
+            else if response.statusCode != 200
+                callback new Error("Server error occured.")
+            else
+                callback()
+
+    # Save only given attributes to DB. If model does not exist it is created.
+    # It requires an ID.
+    updateOrCreate: (model, data, callback) ->
+        data.docType = model
+        @client.put "data/upsert/#{data.id}/", data, (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode != 200 and response.statusCode != 201
+                callback new Error("Server error occured.")
+            else if response.statusCode == 200
+                callback null
+            else if response.statusCode == 201
+                callback null, body._id
 
 
     # Destroy model in database.
