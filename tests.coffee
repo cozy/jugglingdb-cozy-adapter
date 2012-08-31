@@ -157,9 +157,11 @@ describe "Create", ->
         before ->
             @id = null
 
-        after ->
-            @err = null
-            @note = null
+        after (done) ->
+            @note.destroy =>
+                @err = null
+                @note = null
+                done()
 
         it "When I create a document without an id", (done) ->
             Note.create { "title": "cool note", "content": "new note" }, (err, note) =>
@@ -233,6 +235,105 @@ describe "Update", ->
             Note.find @note.id, (err, updatedNote) =>
                 should.not.exist err
                 updatedNote.id.should.equal "321"
+                updatedNote.title.should.equal "my new title"
+                done()
+
+
+describe "Update attributes", ->
+
+    before (done) ->
+        data =
+            title: "my note"
+            content: "my content"
+            docType: "Note"
+
+        client.post 'data/321/', data, (error, response, body) ->
+            done()
+        @note = new Note data
+
+    after (done) ->
+        client.del "data/321/", (error, response, body) ->
+            done()
+
+
+    describe "Try to update attributes of a document that doesn't exist", ->
+        after ->
+            @err = null
+
+        it "When I update a document with id 123", (done) ->
+            @note.updateAttributes title: "my new title", (err) =>
+                @err = err
+                done()
+
+        it "Then an error is returned", ->
+            should.exist @err
+
+    describe "Update a Document", ->
+
+        it "When I update document with id 321", (done) ->
+            @note.id = "321"
+            @note.updateAttributes title: "my new title", (err) =>
+                @err = err
+                done()
+
+        it "Then no error is returned", ->
+            should.not.exist @err
+
+        it "And the old document must have been replaced in DB", (done) ->
+            Note.find @note.id, (err, updatedNote) =>
+                should.not.exist err
+                updatedNote.id.should.equal "321"
+                updatedNote.title.should.equal "my new title"
+                done()
+
+
+
+describe "Upsert attributes", ->
+
+    after (done) ->
+        client.del "data/654/", (error, response, body) ->
+            done()
+
+    describe "Upsert a non existing document", ->
+        it "When I upsert document with id 654", (done) ->
+            @data =
+                id: "654"
+                title: "my note"
+                content: "my content"
+            
+            Note.updateOrCreate @data, (err) =>
+                @err = err
+                done()
+
+        it "Then no error should be returned.", ->
+            should.not.exist @err
+
+        it "Then the document with id 654 should exist in Database", (done) ->
+            Note.find @data.id, (err, updatedNote) =>
+                should.not.exist err
+                updatedNote.id.should.equal "654"
+                updatedNote.title.should.equal "my note"
+                done()
+
+    describe "Upsert an existing Document", ->
+
+        it "When I upsert document with id 654", (done) ->
+            @data =
+                id: "654"
+                title: "my new title"
+            
+            Note.updateOrCreate @data, (err, note) =>
+                should.not.exist note
+                @err = err
+                done()
+
+        it "Then no data should be returned", ->
+            should.not.exist @err
+
+        it "Then the document with id 654 should be updated", (done) ->
+            Note.find @data.id, (err, updatedNote) =>
+                should.not.exist err
+                updatedNote.id.should.equal "654"
                 updatedNote.title.should.equal "my new title"
                 done()
 
