@@ -16,7 +16,7 @@ class exports.CozyDataSystem
         @_models[descr.model.modelName] = descr
 
     # Check existence of model in the data system.
-    exists: (model, id, callback) =>
+    exists: (model, id, callback) ->
         @client.get "data/exist/#{id}/", (error, response, body) =>
             if error
                 callback error
@@ -27,7 +27,7 @@ class exports.CozyDataSystem
 
     # Find a doc with its ID. Returns it if it is found else it
     # returns null
-    find: (model, id, callback) =>
+    find: (model, id, callback) ->
          @client.get "data/#{id}/", (error, response, body) =>
             if error
                 callback error
@@ -40,7 +40,7 @@ class exports.CozyDataSystem
 
     # Create a new document from given data. If no ID is set a new one
     # is automatically generated.
-    create: (model, data, callback) =>
+    create: (model, data, callback) ->
         path = "data/"
         if data.id?
             path += "#{data.id}/"
@@ -101,7 +101,7 @@ class exports.CozyDataSystem
     #     note = new Note id: 123
     #     note.destroy ->
     #         ...
-    destroy: (model, id, callback) =>
+    destroy: (model, id, callback) ->
         @client.del "data/#{id}/", (error, response, body) =>
             if error
                 callback error
