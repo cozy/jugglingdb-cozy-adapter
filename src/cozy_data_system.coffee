@@ -118,6 +118,12 @@ class exports.CozyDataSystem
             else
                 callback()
 
+    # index given fields of model instance inside cozy data indexer.
+    # it requires that note is saved before indexing, else it won't work
+    # properly (it took data from db).
+    # ex: note.index ["content", "title"], (err) ->
+    #  ...
+    #
     index: (model, fields, callback) ->
         data =
             fields: fields
@@ -129,6 +135,10 @@ class exports.CozyDataSystem
             else
                 callback null
 
+    # Retrieve note through index. Give a query then grab results. 
+    # ex: Note.search "dragon", (err, docs) ->
+    # ...
+    #
     search: (model, query, callback) ->
         data =
             query: query
