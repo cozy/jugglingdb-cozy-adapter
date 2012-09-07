@@ -14,6 +14,12 @@ class exports.CozyDataSystem
     # Register Model to adapter
     define: (descr) ->
         @_models[descr.model.modelName] = descr
+        descr.model.prototype.index = (fields, callback) ->
+            @_adapter().index @, fields, callback
+        descr.model.search = (query, callback) =>
+            @search descr.model.modelName, query, callback
+            
+
 
     # Check existence of model in the data system.
     exists: (model, id, callback) ->
@@ -112,4 +118,31 @@ class exports.CozyDataSystem
             else
                 callback()
 
+    index: (model, fields, callback) ->
+        data =
+            fields: fields
+        @client.post "data/index/#{model.id}", data, (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode != 200
+                callback new Error(body)
+            else
+                callback null
 
+    search: (model, query, callback) ->
+        data =
+            query: query
+
+        @client.post "data/search/#{model.toLowerCase()}", data, \
+                     (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode != 200
+                callback new Error(body)
+            else
+                results = []
+                for doc in body.rows
+                    results.push new @_models[model].model(doc)
+                callback null, results
+
+    

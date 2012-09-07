@@ -380,3 +380,45 @@ describe "Delete", ->
                 isExist.should.not.be.ok
                 done()
 
+
+### Indexation ###
+
+createNoteFunction = (title, content) ->
+    (callback) ->
+        data =
+            title: title
+            content: content
+
+        Note.create data, (err, note) ->
+            note.index ["title", "content"], (err) ->
+                callback()
+
+
+describe "Search features", ->
+
+    describe "index", ->
+
+        before (done) ->
+            client.del "data/index/clear-all/", (err, response) ->
+                done()
+
+        it "Given I index four notes", (done) ->
+            async.series [
+                createNoteFunction "Note 01", "little stories begin"
+                createNoteFunction "Note 02", "great dragons are coming"
+                createNoteFunction "Note 03", "small hobbits are afraid"
+                createNoteFunction "Note 04", "such as humans"
+            ], ->
+                done()
+
+        it "When I send a request to search the notes containing dragons", (done) ->
+            Note.search "dragons", (err, notes) =>
+                @notes = notes
+                done()
+
+        it "Then result is the second note I created", ->
+            console.log @notes[0].toObject()
+            @notes.length.should.equal 1
+            @notes[0].title.should.equal "Note 02"
+            @notes[0].content.should.equal "great dragons are coming"
+
