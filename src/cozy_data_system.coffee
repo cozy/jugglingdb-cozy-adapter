@@ -11,15 +11,23 @@ class exports.CozyDataSystem
         @_models = {}
         @client = new Client "http://localhost:7000/"
 
-    # Register Model to adapter
+    # Register Model to adapter and define extra methods
     define: (descr) ->
         @_models[descr.model.modelName] = descr
-        descr.model.prototype.index = (fields, callback) ->
-            @_adapter().index @, fields, callback
+
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
-            
 
+        descr.model::index = (fields, callback) ->
+            @_adapter().index @, fields, callback
+        descr.model::attachFile = (path, callback) ->
+            @_adapter().attachFile  @, path, callback
+        descr.model::getFile = (path, callback) ->
+            @_adapter().getFile  @, path, callback
+        descr.model::saveFile = (path, filePath, callback) ->
+            @_adapter().saveFile  @, path, filePath, callback
+        descr.model::removeFile = (path, callback) ->
+            @_adapter().removeFile  @, path, callback
 
     # Check existence of model in the data system.
     exists: (model, id, callback) ->
@@ -155,4 +163,37 @@ class exports.CozyDataSystem
                     results.push new @_models[model].model(doc)
                 callback null, results
 
-    
+    # Save a file into data system and attach it to current model.
+    attachFile: (model, path, callback) ->
+        urlPath = "data/#{model.id}/attachments/"
+        @client.sendFile urlPath, path, (error, response, body) =>
+            @checkError error, response, body, 201, callback
+
+    # Get file stream of given file for given model from data system
+    getFile: (model, path, callback) ->
+        urlPath = "data/#{model.id}/attachments/#{path}"
+        @client.get urlPath, (error, response, body) =>
+            @checkError error, response, body, 200, callback
+
+    # Save to disk given file for given model from data system
+    saveFile: (model, path, filePath, callback) ->
+        urlPath = "data/#{model.id}/attachments/#{path}"
+        @client.saveFile urlPath, filePath, (error, response, body) =>
+            @checkError error, response, body, 200, callback
+
+    # Remove from db given file of given model.
+    removeFile: (model, path, callback) ->
+        urlPath = "data/#{model.id}/attachments/#{path}"
+        @client.del urlPath, (error, response, body) =>
+            @checkError error, response, body, 204, callback
+
+    # Check if an error occurred. If any, it returns an a proper error.
+    checkError: (error, response, body, code, callback) ->
+        if error
+            callback body
+        else if response.statusCode != code
+            callback new Error(body)
+        else
+            callback null
+
+

@@ -1,6 +1,7 @@
 should = require('chai').Should()
 async = require('async')
 Client = require("request-json").JsonClient
+fs = require("fs")
 
 
 client = new Client "http://localhost:7000/"
@@ -383,6 +384,7 @@ describe "Delete", ->
 
 ### Indexation ###
 
+ids = []
 createNoteFunction = (title, content) ->
     (callback) ->
         data =
@@ -390,11 +392,30 @@ createNoteFunction = (title, content) ->
             content: content
 
         Note.create data, (err, note) ->
+            ids.push note.id
             note.index ["title", "content"], (err) ->
                 callback()
 
+deleteNoteFunction = (id) ->
+    (callback) ->
+        client.del "data/#{id}/", (err) -> callback()
 
 describe "Search features", ->
+    
+    before (done) ->
+        client.post 'data/321/', {
+            title: "my note"
+            content: "my content"
+            docType: "Note"
+            } , (error, response, body) ->
+            done()
+            
+    after (done) ->
+        funcs = []
+        for id in ids
+            funcs.push deleteNoteFunction(id)
+        async.series funcs, ->
+            done()
 
     describe "index", ->
 
@@ -421,3 +442,61 @@ describe "Search features", ->
             @notes[0].title.should.equal "Note 02"
             @notes[0].content.should.equal "great dragons are coming"
 
+
+### Attachments ###
+
+describe "Attachments", ->
+    
+    before (done) ->
+        @note = new Note id: 321
+        data =
+            title: "my note"
+            content: "my content"
+            docType: "Note"
+
+        client.post 'data/321/', data, (error, response, body) ->
+            done()
+
+    after (done) ->
+        client.del "data/321/", (error, response, body) ->
+            done()
+
+    describe "Add an attachment", ->
+
+        it "When I add an attachment", (done) ->
+            @note.attachFile "./test.png", (err) =>
+                @err = err
+                done()
+            
+        it "Then no error is returned", ->
+            should.not.exist @err
+
+    describe "Retrieve an attachment", ->
+
+        it "When I claim this attachment", (done) ->
+            stream = @note.getFile "test.png", -> done()
+            stream.pipe fs.createWriteStream('./test-get.png')
+
+        it "I got the same file I attached before", ->
+            fileStats = fs.statSync('./test.png')
+            resultStats = fs.statSync('./test-get.png')
+            resultStats.size.should.equal fileStats.size
+
+    describe "Remove an attachment", ->
+
+        it "When I remove this attachment", (done) ->
+            @note.removeFile "test.png", (err) =>
+                @err = err
+                done()
+
+        it "Then no error is returned", ->
+            should.not.exist @err
+
+        it "When I claim this attachment", (done) ->
+            stream = @note.getFile "test.png", (err) =>
+                @err = err
+                done()
+            stream.pipe fs.createWriteStream('./test-get.png')
+
+        it "I got an error", ->
+            should.exist @err
