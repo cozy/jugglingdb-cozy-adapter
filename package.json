@@ -13,7 +13,7 @@
       "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/LICENSE"
     }
   ],
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/",
   "bugs": {
     "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/issues"
@@ -42,6 +42,4 @@
     "type": "git",
     "url": "git://github.com/mycozycloud/jugglingdb-cozy-adapter.git"
   },
-  "dependencies": {},
-  "optionalDependencies": {}
 }
