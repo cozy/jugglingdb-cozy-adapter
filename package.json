@@ -13,7 +13,7 @@
       "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/LICENSE"
     }
   ],
-  "version": "0.1.2",
+  "version": "0.1.3",
   "homepage": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/",
   "bugs": {
     "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/issues"
@@ -26,11 +26,10 @@
   },
   "main": "./lib/cozy_data_system.js",
   "dependencies": {
-    "request-json": "0.2.5"
+    "request-json": "0.2.7"
   },
   "devDependencies": {
     "coffee-script": "*",
-    "request-json": "0.2.7",
     "jugglingdb": "0.1.13",
     "chai": "*",
     "async": "*"
