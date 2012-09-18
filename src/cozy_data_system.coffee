@@ -19,8 +19,8 @@ class exports.CozyDataSystem
             @search descr.model.modelName, query, callback
         descr.model.defineRequest = (name, map, callback) =>
             @defineRequest descr.model.modelName, name, map, callback
-        descr.model.request = (name, callback) =>
-            @request descr.model.modelName, name, callback
+        descr.model.request = (name, params, callback) =>
+            @request descr.model.modelName, name, params, callback
         descr.model.removeRequest = (name, callback) =>
             @removeRequest descr.model.modelName, name, callback
 
@@ -218,9 +218,11 @@ class exports.CozyDataSystem
             @checkError error, response, body, 200, callback
 
     # Return defined request result.
-    request: (model, name, callback) ->
+    request: (model, name, params, callback) ->
+        callback = params if typeof(params) == "function"
+        
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
-        @client.get path, (error, response, body) =>
+        @client.post path, params, (error, response, body) =>
             if error
                 callback error
             else if response.statusCode != 200
@@ -228,6 +230,7 @@ class exports.CozyDataSystem
             else
                 results = []
                 for doc in body
+                    doc.value.id = doc.value._id
                     results.push new @_models[model].model(doc.value)
                 callback null, results
 

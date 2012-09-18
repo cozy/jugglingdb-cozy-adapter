@@ -536,6 +536,15 @@ describe "Requests", ->
         ], ->
             done()
 
+    after (done) ->
+        funcs = []
+        for id in ids
+            funcs.push deleteNoteFunction(id)
+        async.series funcs, ->
+            ids = []
+            done()
+
+    describe "index", ->
     describe "View creation", ->
 
         describe "Creation of the first view + design document creation", ->
@@ -575,6 +584,18 @@ describe "Requests", ->
 
             it "Then I should have 4 documents returned", ->
                 @notes.should.have.length 4
+
+        describe "Access to a doc from a view : every_notes", (done) ->
+
+            it "When I send a request to access view every_docs", (done) ->
+                delete @err
+                Note.request "every_notes", {key: ids[3]}, (err, notes) =>
+                    @notes = notes
+                    done()
+
+            it "Then I should have 1 documents returned", ->
+                @notes.should.have.length 1
+                @notes[0].id.should.equal ids[3]
 
 
     describe "Deletion of an existing view", ->
