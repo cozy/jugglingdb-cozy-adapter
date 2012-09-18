@@ -17,6 +17,12 @@ class exports.CozyDataSystem
 
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
+        descr.model.defineRequest = (name, map, callback) =>
+            @defineRequest descr.model.modelName, name, map, callback
+        descr.model.request = (name, callback) =>
+            @request descr.model.modelName, name, callback
+        descr.model.removeRequest = (name, callback) =>
+            @removeRequest descr.model.modelName, name, callback
 
         descr.model::index = (fields, callback) ->
             @_adapter().index @, fields, callback
@@ -190,10 +196,43 @@ class exports.CozyDataSystem
     # Check if an error occurred. If any, it returns an a proper error.
     checkError: (error, response, body, code, callback) ->
         if error
-            callback body
+            callback error
         else if response.statusCode != code
             callback new Error(body)
         else
             callback null
 
+    # Create a new couchdb view which is typed with current model type.
+    defineRequest: (model, name, request, callback) ->
+        view = map: """
+        function (doc) {
+          if (doc.docType === "#{model}") {
+            filter = #{request.toString()};
+            filter(doc);
+          }
+        }
+        """
 
+        path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
+        @client.put path, view, (error, response, body) =>
+            @checkError error, response, body, 200, callback
+
+    # Return defined request result.
+    request: (model, name, callback) ->
+        path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
+        @client.get path, (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode != 200
+                callback new Error(body)
+            else
+                results = []
+                for doc in body
+                    results.push new @_models[model].model(doc.value)
+                callback null, results
+
+    # Delete request that match given name for current type
+    removeRequest: (model, name, callback) ->
+        path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
+        @client.del path, (error, response, body) =>
+            @checkError error, response, body, 204, callback
