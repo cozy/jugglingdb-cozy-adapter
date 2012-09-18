@@ -396,6 +396,16 @@ createNoteFunction = (title, content) ->
             note.index ["title", "content"], (err) ->
                 callback()
 
+createTaskFunction = (description) ->
+    (callback) ->
+        client.post 'data/', {
+            description: "description"
+            docType: "task"
+        } , (error, response, body) ->
+            callback()
+
+
+
 deleteNoteFunction = (id) ->
     (callback) ->
         client.del "data/#{id}/", (err) -> callback()
@@ -415,6 +425,7 @@ describe "Search features", ->
         for id in ids
             funcs.push deleteNoteFunction(id)
         async.series funcs, ->
+            ids = []
             done()
 
     describe "index", ->
@@ -500,3 +511,83 @@ describe "Attachments", ->
 
         it "I got an error", ->
             should.exist @err
+
+
+checkNoError = ->
+    it "Then no error should be returned", ->
+        should.not.exist @err
+
+
+checkError = ->
+    it "Then error should be returned", ->
+        should.exist  @err
+
+describe "Requests", ->
+
+    before (done) ->
+        async.series [
+            createNoteFunction "Note 01", "little stories begin"
+            createNoteFunction "Note 02", "great dragons are coming"
+            createNoteFunction "Note 03", "small hobbits are afraid"
+            createNoteFunction "Note 04", "such as humans"
+            createTaskFunction "Task 01"
+            createTaskFunction "Task 02"
+            createTaskFunction "Task 03"
+        ], ->
+            done()
+
+    describe "View creation", ->
+
+        describe "Creation of the first view + design document creation", ->
+
+            it "When I send a request to create view every_docs", (done) ->
+                delete @err
+                @map = (doc) ->
+                    emit doc._id, doc
+                    return
+                Note.defineRequest "every_notes", @map, (err) ->
+                    should.not.exist err
+                    done()
+
+            checkNoError()
+
+    describe "Access to a view without option", ->
+
+        describe "Access to a non existing view", ->
+
+            it "When I send a request to access view dont-exist", (done) ->
+                delete @err
+                Note.request "dont-exist", (err, notes) =>
+                    @err = err
+                    should.exist err
+                    done()
+
+            checkError()
+
+
+        describe "Access to an existing view : every_notes", (done) ->
+
+            it "When I send a request to access view every_docs", (done) ->
+                delete @err
+                Note.request "every_notes", (err, notes) =>
+                    @notes = notes
+                    done()
+
+            it "Then I should have 4 documents returned", ->
+                @notes.should.have.length 4
+
+
+    describe "Deletion of an existing view", ->
+
+        it "When I send a request to delete view every_notes", (done) ->
+            Note.removeRequest "every_notes", (err) ->
+                should.not.exist err
+                done()
+
+        it "And I send a request to access view every_notes", (done) ->
+            delete @err
+            Note.request "every_notes", (err, note) =>
+                @err = err
+                done()
+
+        checkError()
