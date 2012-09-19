@@ -23,6 +23,8 @@ class exports.CozyDataSystem
             @request descr.model.modelName, name, params, callback
         descr.model.removeRequest = (name, callback) =>
             @removeRequest descr.model.modelName, name, callback
+        descr.model.requestDestroy = (name, params, callback) =>
+            @requestDestroy descr.model.modelName, name, params, callback
 
         descr.model::index = (fields, callback) ->
             @_adapter().index @, fields, callback
@@ -234,8 +236,16 @@ class exports.CozyDataSystem
                     results.push new @_models[model].model(doc.value)
                 callback null, results
 
-    # Delete request that match given name for current type
+    # Delete request that match given name for current type.
     removeRequest: (model, name, callback) ->
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
         @client.del path, (error, response, body) =>
+            @checkError error, response, body, 204, callback
+
+    # Delete all results that should be returned by the request.
+    requestDestroy: (model, name, params, callback) ->
+        callback = params if typeof(params) == "function"
+        
+        path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/destroy/"
+        @client.put path, params, (error, response, body) =>
             @checkError error, response, body, 204, callback

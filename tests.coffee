@@ -587,7 +587,7 @@ describe "Requests", ->
 
         describe "Access to a doc from a view : every_notes", (done) ->
 
-            it "When I send a request to access view every_docs", (done) ->
+            it "When I send a request to access doc 3 from every_docs", (done) ->
                 delete @err
                 Note.request "every_notes", {key: ids[3]}, (err, notes) =>
                     @notes = notes
@@ -597,6 +597,47 @@ describe "Requests", ->
                 @notes.should.have.length 1
                 @notes[0].id.should.equal ids[3]
 
+    describe "Deletion of docs through requests", ->
+        
+        describe "Delete a doc from a view : every_notes", (done) ->
+
+            it "When I send a request to delete a doc from every_docs", (done) ->
+                Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
+                    should.not.exist err
+                    done()
+
+            it "And I send a request to access view every_docs", (done) ->
+                delete @err
+                delete @notes
+                Note.request "every_notes", {key: ids[3]}, (err, notes) =>
+                    @notes = notes
+                    done()
+
+            it "Then I should have 0 documents returned", ->
+                @notes.should.have.length 0
+
+            it "And other documents are still there", (done) ->
+                Note.request "every_notes", (err, notes) =>
+                    should.not.exist err
+                    notes.should.have.length 3
+                    done()
+
+        describe "Delete all doc from a view : every_notes", (done) ->
+
+            it "When I delete all docs from every_docs", (done) ->
+                Note.requestDestroy "every_notes", (err) ->
+                    should.not.exist err
+                    done()
+
+            it "And I send a request to grab all docs from every_docs", (done) ->
+                delete @err
+                delete @notes
+                Note.request "every_notes", (err, notes) =>
+                    @notes = notes
+                    done()
+
+            it "Then I should have 0 documents returned", ->
+                @notes.should.have.length 0
 
     describe "Deletion of an existing view", ->
 
