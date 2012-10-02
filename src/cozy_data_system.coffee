@@ -1,8 +1,8 @@
 Client = require("request-json").JsonClient
 
 exports.initialize = (schema, callback) ->
-  schema.adapter = new exports.CozyDataSystem()
-  process.nextTick(callback)
+    schema.adapter = new exports.CozyDataSystem()
+    process.nextTick(callback)
 
 
 class exports.CozyDataSystem
@@ -25,11 +25,17 @@ class exports.CozyDataSystem
             @removeRequest descr.model.modelName, name, callback
         descr.model.requestDestroy = (name, params, callback) =>
             @requestDestroy descr.model.modelName, name, params, callback
+        descr.model.all = (params, callback) =>
+            @all descr.model.modelName, params, callback
+        descr.model.destroyAll = (params, callback) =>
+            @destroyAll descr.model.modelName, params, callback
+        descr.model.applyRequest = (params, callback) =>
+            @applyRequest descr.model.modelName, params, callback
 
         descr.model::index = (fields, callback) ->
             @_adapter().index @, fields, callback
-        descr.model::attachFile = (path, callback) ->
-            @_adapter().attachFile  @, path, callback
+        descr.model::attachFile = (path, data, callback) ->
+            @_adapter().attachFile  @, path, data, callback
         descr.model::getFile = (path, callback) ->
             @_adapter().getFile  @, path, callback
         descr.model::saveFile = (path, filePath, callback) ->
@@ -172,9 +178,13 @@ class exports.CozyDataSystem
                 callback null, results
 
     # Save a file into data system and attach it to current model.
-    attachFile: (model, path, callback) ->
+    attachFile: (model, path, data, callback) ->
+        if typeof(data) == "function"
+            callback = data
+            data = null
+            
         urlPath = "data/#{model.id}/attachments/"
-        @client.sendFile urlPath, path, (error, response, body) =>
+        @client.sendFile urlPath, path, data, (error, response, body) =>
             @checkError error, response, body, 201, callback
 
     # Get file stream of given file for given model from data system
@@ -249,3 +259,54 @@ class exports.CozyDataSystem
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/destroy/"
         @client.put path, params, (error, response, body) =>
             @checkError error, response, body, 204, callback
+    
+    # Shortcut for "all" view, a view containing all objects of this type.
+    # This method is useful because Juggling make some usage of it for joins.
+    # This requires that view all exist for this object.
+    all: (model, params, callback) ->
+        view = "all"
+        if params?.view?
+            view = params.view
+            delete params.view
+
+        @request model, view, params, callback
+
+    # Shortcut for destroying all documents from "all" view, 
+    # This requires that view all exist for this object.
+    destroyAll: (model, params, callback) ->
+        view = "all"
+        if params?.view?
+            view = params.view
+            delete params.view
+
+        @requestDestroy model, view, params, callback
+
+    # Make hasMany jugglingdb base method works with cozy data system.
+    hasMany: (anotherClass, params) ->
+        find = (id, cb) ->
+            anotherClass.find id, (err, inst) ->
+                return cb(err)  if err
+                return cb(new Error("Not found"))  unless inst
+                if inst[fk] is @id
+                    cb null, inst
+                else
+                    cb new Error("Permission denied")
+        
+        destroy = (id, cb) =>
+            @find id, (err, inst) ->
+                return cb(err)  if err
+                if inst
+                    inst.destroy cb
+                else
+                    cb new Error("Not found")
+
+        methodName = params.as
+        fk = params.foreignKey
+        defineScope @prototype, anotherClass, methodName, (->
+            view: fk
+            key: @methodName
+        ),
+            find: find
+            destroy: destroy
+
+        anotherClass.schema.defineForeignKey anotherClass.modelName, fk

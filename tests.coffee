@@ -11,9 +11,13 @@ schema = new Schema 'memory'
 require("./src/cozy_data_system").initialize(schema)
 
 Note = schema.define 'Note',
-    title:     { type: String, length: 255 }
+    title:     { type: String }
     content:   { type: Schema.Text }
+    author:    { type: String }
 
+Author = schema.define 'Author',
+    name:      { type: String }
+Author.hasMany(Note, {as: 'notes', foreignKey: 'author'})
 
 describe "Existence", ->
 
@@ -653,3 +657,9 @@ describe "Requests", ->
                 done()
 
         checkError()
+
+    describe "Has many relation", ->
+
+        it "When I require all notes related to given author", (done) ->
+        it "Then I have two notes", (done) ->
+            
