@@ -1,15 +1,18 @@
 Client = require("request-json").JsonClient
 
 exports.initialize = (schema, callback) ->
-    schema.adapter = new exports.CozyDataSystem()
+    unless schema.settings.url?
+        schema.settings.url = "http://localhost:7000/"
+            
+    schema.adapter = new exports.CozyDataSystem schema.settings.url
     process.nextTick(callback)
 
 
 class exports.CozyDataSystem
 
-    constructor: ->
+    constructor: (url) ->
         @_models = {}
-        @client = new Client "http://localhost:7000/"
+        @client = new Client url
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
