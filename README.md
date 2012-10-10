@@ -26,3 +26,13 @@ Cozy Data System and CouchDB up and running.
 Check 
 [test file](https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/tests.coffee)
 for documented usage of methods available in this adapter.
+
+## Build & tests
+
+To build source to JS, run
+
+    cake build
+
+To run tests:
+
+    cake tests
