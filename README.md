@@ -27,7 +27,7 @@ Check
 [test file](https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/tests.coffee)
 for documented usage of methods available in this adapter.
 
-```javascript
+```coffeescript
 # Existence
 Note.exists 123, (err, isExist) ->
     console.log isExist
@@ -36,7 +36,7 @@ Note.exists 123, (err, isExist) ->
 Note.find 321, (err, note) ->
     console.log note
 
-#Create
+# Create
 Note.create { id: "321", "content":"created value"}, (err, note) ->
     console.log note.id
 
