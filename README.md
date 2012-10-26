@@ -28,6 +28,9 @@ Check
 for documented usage of methods available in this adapter.
 
 ```coffeescript
+
+### Documents ###
+
 # Existence
 Note.exists 123, (err, isExist) ->
     console.log isExist
@@ -56,13 +59,19 @@ Note.find @data.id, (err, note) ->
 note.destroy (err) ->
     console.log err
 
-# Index note
+
+### Indexation ###
+
+# Index document fields
 note.index ["title", "content"], (err) ->
     console.log err
 
 # Search through indexes
 Note.search "dragons", (err, notes) ->
     console.log notes
+
+
+### Files ###
 
 # Attach file
 note.attachFile "./test.png", (err) ->
@@ -72,6 +81,9 @@ note.attachFile "./test.png", (err) ->
 stream = @note.getFile "test.png", (err) ->
      console.log err
 stream.pipe fs.createWriteStream('./test-get.png')
+
+
+### Requests ###
 
 # Define request
 map = (doc) ->
