@@ -8,6 +8,7 @@ client = new Client "http://localhost:7000/"
 
 Schema = require('jugglingdb').Schema
 schema = new Schema 'memory'
+schema.settings = {}
 require("./src/cozy_data_system").initialize(schema)
 
 Note = schema.define 'Note',
@@ -389,11 +390,13 @@ describe "Delete", ->
 ### Indexation ###
 
 ids = []
-createNoteFunction = (title, content) ->
+createNoteFunction = (title, content, author) ->
     (callback) ->
+        if author? then authorId = author.id else authorId = null
         data =
             title: title
             content: content
+            author: authorId
 
         Note.create data, (err, note) ->
             ids.push note.id
@@ -422,7 +425,7 @@ describe "Search features", ->
             content: "my content"
             docType: "Note"
             } , (error, response, body) ->
-            done()
+                done()
             
     after (done) ->
         funcs = []
@@ -658,8 +661,41 @@ describe "Requests", ->
 
         checkError()
 
+### Relations ###
+
+describe "Relations", ->
+
+    before (done) ->
+        Author.create name: "John", (err, author) =>
+            @author = author
+            async.series [
+                createNoteFunction "Note 01", "little stories begin", author
+                createNoteFunction "Note 02", "great dragons are coming", author
+                createNoteFunction "Note 03", "small hobbits are afraid", author
+                createNoteFunction "Note 04", "such as humans", null
+            ], ->
+                done()
+
+    after (done) ->
+        funcs = []
+        for id in ids
+            funcs.push deleteNoteFunction(id)
+        async.series funcs, ->
+            ids = []
+            if author?
+                @author.destroy ->
+                    done()
+            else
+                done()
+
     describe "Has many relation", ->
 
         it "When I require all notes related to given author", (done) ->
-        it "Then I have two notes", (done) ->
-            
+            @author.notes (err, notes) =>
+                should.not.exist err
+                @notes = notes
+                done()
+
+        it "Then I have three notes", ->
+            should.exist @notes
+            @notes.length.should.equal 3

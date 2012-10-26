@@ -283,33 +283,3 @@ class exports.CozyDataSystem
             delete params.view
 
         @requestDestroy model, view, params, callback
-
-    # Make hasMany jugglingdb base method works with cozy data system.
-    hasMany: (anotherClass, params) ->
-        find = (id, cb) ->
-            anotherClass.find id, (err, inst) ->
-                return cb(err)  if err
-                return cb(new Error("Not found"))  unless inst
-                if inst[fk] is @id
-                    cb null, inst
-                else
-                    cb new Error("Permission denied")
-        
-        destroy = (id, cb) =>
-            @find id, (err, inst) ->
-                return cb(err)  if err
-                if inst
-                    inst.destroy cb
-                else
-                    cb new Error("Not found")
-
-        methodName = params.as
-        fk = params.foreignKey
-        defineScope @prototype, anotherClass, methodName, (->
-            view: fk
-            key: @methodName
-        ),
-            find: find
-            destroy: destroy
-
-        anotherClass.schema.defineForeignKey anotherClass.modelName, fk

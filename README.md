@@ -74,11 +74,11 @@ stream = @note.getFile "test.png", (err) ->
 stream.pipe fs.createWriteStream('./test-get.png')
 
 # Define request
-@map = (doc) ->
+map = (doc) ->
     emit doc._id, doc
     return
 
-Note.defineRequest "every_notes", @map, (err) ->
+Note.defineRequest "every_notes", map, (err) ->
     console.log err
 
 # Get request results
