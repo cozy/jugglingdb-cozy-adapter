@@ -2,7 +2,7 @@ Client = require("request-json").JsonClient
 
 exports.initialize = (schema, callback) ->
     unless schema.settings.url?
-        schema.settings.url = "http://localhost:7000/"
+        schema.settings.url = "http://localhost:9101/"
             
     schema.adapter = new exports.CozyDataSystem schema.settings.url
     process.nextTick(callback)
@@ -24,6 +24,8 @@ class exports.CozyDataSystem
             @defineRequest descr.model.modelName, name, map, callback
         descr.model.request = (name, params, callback) =>
             @request descr.model.modelName, name, params, callback
+        descr.model.rawRequest = (name, params, callback) =>
+            @rawRequest descr.model.modelName, name, params, callback
         descr.model.removeRequest = (name, callback) =>
             @removeRequest descr.model.modelName, name, callback
         descr.model.requestDestroy = (name, params, callback) =>
@@ -34,6 +36,10 @@ class exports.CozyDataSystem
             @destroyAll descr.model.modelName, params, callback
         descr.model.applyRequest = (params, callback) =>
             @applyRequest descr.model.modelName, params, callback
+        #descr.model._forDB = (data) =>
+            #@_forDB data
+        #descr.model::_forDB = (data) =>
+            #@_adapter()._forDB data
 
         descr.model::index = (fields, callback) ->
             @_adapter().index @, fields, callback
@@ -77,6 +83,7 @@ class exports.CozyDataSystem
             path += "#{data.id}/"
             delete data.id
         data.docType = model
+        
         @client.post path, data, (error, response, body) =>
             if error
                 callback error
@@ -219,15 +226,23 @@ class exports.CozyDataSystem
 
     # Create a new couchdb view which is typed with current model type.
     defineRequest: (model, name, request, callback) ->
-        view = map: """
+        if typeof(request) == "function"
+            map = request
+        else
+            map = request.map
+            reduce = request.reduce.toString()
+
+        view =
+            reduce: reduce
+            map: """
         function (doc) {
           if (doc.docType === "#{model}") {
-            filter = #{request.toString()};
+            filter = #{map.toString()};
             filter(doc);
           }
         }
         """
-
+            
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
         @client.put path, view, (error, response, body) =>
             @checkError error, response, body, 200, callback
@@ -248,6 +263,21 @@ class exports.CozyDataSystem
                     doc.value.id = doc.value._id
                     results.push new @_models[model].model(doc.value)
                 callback null, results
+
+    # Return defined request result in the format given by data system
+    # (couchDB style).
+    rawRequest: (model, name, params, callback) ->
+        callback = params if typeof(params) == "function"
+        
+        path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
+        @client.post path, params, (error, response, body) =>
+            if error
+                callback error
+            else if response.statusCode != 200
+                callback new Error(body)
+            else
+                callback null, body
+
 
     # Delete request that match given name for current type.
     removeRequest: (model, name, callback) ->
@@ -283,3 +313,6 @@ class exports.CozyDataSystem
             delete params.view
 
         @requestDestroy model, view, params, callback
+
+    #_forDB: (data) ->
+        #data
