@@ -1,18 +1,18 @@
 Client = require("request-json").JsonClient
 
-exports.initialize = (schema, callback) ->
+exports.initialize = (@schema, callback) ->
     unless schema.settings.url?
         schema.settings.url = "http://localhost:9101/"
             
-    schema.adapter = new exports.CozyDataSystem schema.settings.url
+    schema.adapter = new exports.CozyDataSystem schema
     process.nextTick(callback)
 
 
 class exports.CozyDataSystem
 
-    constructor: (url) ->
+    constructor: (@schema) ->
         @_models = {}
-        @client = new Client url
+        @client = new Client schema.settings.url
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
@@ -36,8 +36,8 @@ class exports.CozyDataSystem
             @destroyAll descr.model.modelName, params, callback
         descr.model.applyRequest = (params, callback) =>
             @applyRequest descr.model.modelName, params, callback
-        #descr.model._forDB = (data) =>
-            #@_forDB data
+        descr.model._forDB = (data) =>
+            @_forDB descr.model.modelName, data
         #descr.model::_forDB = (data) =>
             #@_adapter()._forDB data
 
@@ -314,5 +314,18 @@ class exports.CozyDataSystem
 
         @requestDestroy model, view, params, callback
 
-    #_forDB: (data) ->
-        #data
+
+    # Weird rewrite due to a juggling DB on array parsing.
+    _forDB: (model, data) ->
+        res = {}
+        Object.keys(data).forEach (propName) =>
+            if @whatTypeName(model, propName) == 'JSON'
+                res[propName] = JSON.stringify(data[propName])
+            else
+                res[propName] = data[propName]
+        return res
+
+    # Weird rewrite due to a juggling DB on array parsing.
+    whatTypeName: (model, propName) ->
+        ds = @schema.definitions[model]
+        return ds.properties[propName] && ds.properties[propName].type.name
