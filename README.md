@@ -14,13 +14,13 @@ directly:
 Then in your *config/database.json* file, add this:
 
     { 
-        "driver":   "jugglingdb-cozy-adapter"
-        "url": "http://localhost:7000/"
+        "driver":   "jugglingdb-cozy-adapter",
+        "url": "http://localhost:9101/"
     }
 
-Url parameter is optional. Don't forget the trailing slash at the of the url.
-Of course to work correctly, the adapter required
-Cozy Data System and CouchDB up and running.
+Url parameter is optional. Don't forget the trailing slash at the end of the
+url.  Of course to work correctly, the adapter required Cozy Data System and
+CouchDB up and running.
 
 ## Usage
 
