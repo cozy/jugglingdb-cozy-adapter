@@ -1,29 +1,27 @@
+fs = require("fs")
 should = require('chai').Should()
 async = require('async')
+
 Client = require("request-json").JsonClient
-fs = require("fs")
-
-
-client = new Client "http://localhost:7000/"
-
 Schema = require('jugglingdb').Schema
+
+client = new Client "http://localhost:9101/"
 schema = new Schema 'memory'
 schema.settings = {}
 require("./src/cozy_data_system").initialize(schema)
 
 Note = schema.define 'Note',
-    title:     { type: String }
-    content:   { type: Schema.Text }
-    author:    { type: String }
-
-Author = schema.define 'Author',
-    name:      { type: String }
-Author.hasMany(Note, {as: 'notes', foreignKey: 'author'})
+    title:
+        type: String
+    content:
+        type: Schema.Text
+    author:
+        type: String
 
 describe "Existence", ->
 
     before (done) ->
-        client.post 'data/321/', {"value":"created value"}, \
+        client.post 'data/321/', value: "created value", \
             (error, response, body) ->
             done()
 
@@ -661,41 +659,41 @@ describe "Requests", ->
 
         checkError()
 
-### Relations ###
+#### Relations ###
 
-describe "Relations", ->
+#describe "Relations", ->
 
-    before (done) ->
-        Author.create name: "John", (err, author) =>
-            @author = author
-            async.series [
-                createNoteFunction "Note 01", "little stories begin", author
-                createNoteFunction "Note 02", "great dragons are coming", author
-                createNoteFunction "Note 03", "small hobbits are afraid", author
-                createNoteFunction "Note 04", "such as humans", null
-            ], ->
-                done()
+    #before (done) ->
+        #Author.create name: "John", (err, author) =>
+            #@author = author
+            #async.series [
+                #createNoteFunction "Note 01", "little stories begin", author
+                #createNoteFunction "Note 02", "great dragons are coming", author
+                #createNoteFunction "Note 03", "small hobbits are afraid", author
+                #createNoteFunction "Note 04", "such as humans", null
+            #], ->
+                #done()
 
-    after (done) ->
-        funcs = []
-        for id in ids
-            funcs.push deleteNoteFunction(id)
-        async.series funcs, ->
-            ids = []
-            if author?
-                @author.destroy ->
-                    done()
-            else
-                done()
+    #after (done) ->
+        #funcs = []
+        #for id in ids
+            #funcs.push deleteNoteFunction(id)
+        #async.series funcs, ->
+            #ids = []
+            #if author?
+                #@author.destroy ->
+                    #done()
+            #else
+                #done()
 
-    describe "Has many relation", ->
+    #describe "Has many relation", ->
 
-        it "When I require all notes related to given author", (done) ->
-            @author.notes (err, notes) =>
-                should.not.exist err
-                @notes = notes
-                done()
+        #it "When I require all notes related to given author", (done) ->
+            #@author.notes (err, notes) =>
+                #should.not.exist err
+                #@notes = notes
+                #done()
 
-        it "Then I have three notes", ->
-            should.exist @notes
-            @notes.length.should.equal 3
+        #it "Then I have three notes", ->
+            #should.exist @notes
+            #@notes.length.should.equal 3
