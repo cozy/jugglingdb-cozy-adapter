@@ -185,6 +185,7 @@ class exports.CozyDataSystem
                 results = []
                 for doc in body.rows
                     results.push new @_models[model].model(doc)
+                    doc.id = doc._id if doc._id?
                 callback null, results
 
     # Save a file into data system and attach it to current model.

@@ -1,37 +1,38 @@
+fs = require("fs")
 should = require('chai').Should()
 async = require('async')
+
 Client = require("request-json").JsonClient
-fs = require("fs")
-
-
-client = new Client "http://localhost:7000/"
-
 Schema = require('jugglingdb').Schema
+
+client = new Client "http://localhost:9101/"
 schema = new Schema 'memory'
 schema.settings = {}
 require("./src/cozy_data_system").initialize(schema)
 
 Note = schema.define 'Note',
-    title:     { type: String }
-    content:   { type: Schema.Text }
-    author:    { type: String }
+    title:
+        type: String
+    content:
+        type: Schema.Text
+    author:
+        type: String
 
 MailBox = schema.define 'MailBox',
-    pwd:       { type: String }
-    login:     { type: String }
-    service:   { type: String }
+    pwd:
+        type: String
+    login:
+        type: String
+    service:
+        type: String
 
 Prox = schema.define 'Prox'
 
 
-Author = schema.define 'Author',
-    name:      { type: String }
-Author.hasMany(Note, {as: 'notes', foreignKey: 'author'})
-
 describe "Existence", ->
 
     before (done) ->
-        client.post 'data/321/', {"value":"created value"}, \
+        client.post 'data/321/', value: "created value", \
             (error, response, body) ->
             done()
 
@@ -669,44 +670,44 @@ describe "Requests", ->
 
         checkError()
 
-### Relations ###
+#### Relations ###
 
-describe "Relations", ->
+#describe "Relations", ->
 
-    before (done) ->
-        Author.create name: "John", (err, author) =>
-            @author = author
-            async.series [
-                createNoteFunction "Note 01", "little stories begin", author
-                createNoteFunction "Note 02", "great dragons are coming", author
-                createNoteFunction "Note 03", "small hobbits are afraid", author
-                createNoteFunction "Note 04", "such as humans", null
-            ], ->
-                done()
+    #before (done) ->
+        #Author.create name: "John", (err, author) =>
+            #@author = author
+            #async.series [
+                #createNoteFunction "Note 01", "little stories begin", author
+                #createNoteFunction "Note 02", "great dragons are coming", author
+                #createNoteFunction "Note 03", "small hobbits are afraid", author
+                #createNoteFunction "Note 04", "such as humans", null
+            #], ->
+                #done()
 
-    after (done) ->
-        funcs = []
-        for id in ids
-            funcs.push deleteNoteFunction(id)
-        async.series funcs, ->
-            ids = []
-            if author?
-                @author.destroy ->
-                    done()
-            else
-                done()
+    #after (done) ->
+        #funcs = []
+        #for id in ids
+            #funcs.push deleteNoteFunction(id)
+        #async.series funcs, ->
+            #ids = []
+            #if author?
+                #@author.destroy ->
+                    #done()
+            #else
+                #done()
 
-    describe "Has many relation", ->
+    #describe "Has many relation", ->
 
-        it "When I require all notes related to given author", (done) ->
-            @author.notes (err, notes) =>
-                should.not.exist err
-                @notes = notes
-                done()
+        #it "When I require all notes related to given author", (done) ->
+            #@author.notes (err, notes) =>
+                #should.not.exist err
+                #@notes = notes
+                #done()
 
-        it "Then I have three notes", ->
-            should.exist @notes
-            @notes.length.should.equal 3
+        #it "Then I have three notes", ->
+            #should.exist @notes
+            #@notes.length.should.equal 3###
 
 
 ### Account ###
@@ -762,7 +763,13 @@ describe "Initialize keys in a second connexion", ->
 
 
 describe "Create an account", ->
+
+    after (done) ->
+        client.del "account/123/", (err, res) ->
+                done()
+
     describe "Create an account without id", ->
+
         it "When I create an account without id", (done) ->
             data =
                 pwd: "password"
@@ -789,6 +796,7 @@ describe "Create an account", ->
                 note.pwd.should.be.not.equal "password"
 
     describe "Create an account with a specific id", ->
+
         it "When I create an account with id 123", (done) ->
             data =
                 id: "123"
@@ -802,6 +810,7 @@ describe "Create an account", ->
 
         it "Then id 123 should be returned", ->
             should.exist @account.id
+            @account.id should.be.equal "123"
 
         it "And account should be in the database", ->
             Note.exists 123, (err, isExist) =>
@@ -815,6 +824,9 @@ describe "Create an account", ->
                 note.pwd.should.be.not.equal "password"
 
     describe "Try to create an account without field 'pwd' ", ->
+        after ->
+            @err = null
+
         it "When I try to create an account", (done) ->
             data =
                 login: "log"
@@ -831,6 +843,9 @@ describe "Create an account", ->
             should.not.exist @account
 
     describe "Try to create an account that exist in database", ->
+        after ->
+            @err = null
+
         it "When I try to create account with id 123", (done) ->
             data =
                 id: "123"
@@ -845,22 +860,29 @@ describe "Create an account", ->
         it "The error should be returned", ->
             should.exist @err
 
-        it "And account should not exist", ->
-            should.not.exist @account
-
 
 describe "Find an account", ->
-    describe "Try to find an account that not exist", ->
+
+    before (done) ->
+        data =
+            pwd: "password"
+            login: "log"
+            service: "cozyCLoud"
+        client.post 'account/123/', data, (err, res, body) ->
+            done()
+
+    after (done) ->
+        client.del "account/123/", (err, res) ->
+                done()
+
+    describe "Try to find an account that doesn't exist", ->
+
         it "When I find account with id 456", (done) ->
             MailBox.findAccount 456, (err, account) =>
-                @err = err
                 @account = account
                 done()
 
-        it "Then error should be returned", ->
-            should.exist @err
-
-        it "And account should not exist", ->
+        it "Then null should ne returned", ->
             should.not.exist @account
 
     describe "Find an account that exist in the database", ->
@@ -885,7 +907,21 @@ describe "Find an account", ->
 
 
 describe "Existence of an account", ->
-    describe "Check existence of an account that exist in the database", ->
+
+    before (done) ->
+        data =
+            pwd: "password"
+            login: "log"
+            service: "cozyCLoud"
+        client.post 'account/123/', data, (err, res, body) ->
+            done()
+
+    after (done) ->
+        client.del "account/123/", (err, res) ->
+                done()
+
+    describe "Check existence of an account that exists in the database", ->
+
         it "When I check the existence of account with id 123", (done) ->
             MailBox.existAccount 123, (err, isExist) =>
                 @err = err
@@ -896,9 +932,10 @@ describe "Existence of an account", ->
             should.not.exist @err
 
         it "And response should be positive", ->
-            isExist.should.be.equal true
+            @isExist.should.be.equal true
 
     describe "Check existence of an account that doesn't exist in the DB", ->
+
         it "When I check the existence of account with id 456", (done) ->
             MailBox.existAccount 456, (err, isExist) =>
                 @err = err
@@ -910,3 +947,212 @@ describe "Existence of an account", ->
 
         it "And response should be negative", ->
             isExist.should.be.equal false
+
+describe "Update an account", ->
+
+    before (done) ->
+        data =
+            pwd: "password"
+            login: "log"
+            service: "cozyCloud"
+
+        client.post 'account/123/', data, (err, res, body) ->
+            done()
+        @account = new Account data
+
+    after (done) ->
+        client.del "account/123/", (err, res) ->
+            done()
+
+    describe "Update an account that doesn't exist", ->
+        after ->
+            @err = null
+
+        it "When I update account with id 456", (done) ->
+            @account.id = "456"
+            @account.save (err) =>
+                @err = err
+                done()
+
+        it "Then error should be returned", ->
+            should.exist @err
+
+    describe "Update an account that exist with 'pwd'", ->
+        it "When I update account with id 123 with a field 'pwd' ", (done)->
+            @account.id = "123"
+            @account.pwd = "newPassword"
+            @account.login = "newLog"
+            @account.service = "newService"
+            @accout.save (err) =>
+                @err = err
+                done()
+
+        it "Then no error should be returned", ->
+            should.not.exist @err
+
+        it "And account should be updated", (done) ->
+            MailBox.findAccount 123, (err, updatedAccount) =>
+                should.not.exist err
+                should.exist updatedAccount.pwd
+                updatedAccount.pwd.should.be.equal "newPassword"
+                updatedAccount.login.should.be.equal "newLog"
+                updatedAccount.service.should.be.equal "newService"
+                done()
+
+    describe "Try to update an account sithout field 'pwd'", ->
+
+        it "When I try to update account with id 123", (done) ->
+            @account.id = "123"
+            @account.login = "newLog"
+            @account.service = "newService"
+            @accout.save (err) =>
+                @err = err
+                done()
+
+        it "Then error should be returned", ->
+            should.exist @err
+
+
+describe "Merge an account", ->
+
+    before (done) ->
+        data =
+            pwd: "password"
+            login: "log"
+            service: "cozyCloud"
+
+        client.post 'account/123/', data, (err, res, body) ->
+            done()
+        @account = new Account data
+
+    after (done) ->
+        client.del "account/123/", (err, res, body) ->
+            done()
+
+    describe "Merge an account that doesn't exist", ->
+        after ->
+            @err = null
+
+        it "When I merge account with id 456", (done) ->
+            @account.id = "456"
+            @account.mergeAccount login: "newLog", (err) =>
+                @err = err
+                done()
+
+        it "Then an error should be returned", ->
+            should.exist @err
+
+    describe "Merge an account that exists", ->
+
+        it "When I merge account with id 123", (done) ->
+            @account.id = "123"
+            @account.mergeAccount login: "newLog", (err) =>
+                @err = err
+                done()
+
+        it "Then no error should be returned", ->
+            should.not.exist @err
+
+        it "And account should be replaced", (done) ->
+            MailBox.findAccount 123, (err, account) =>
+                should.not.exist err
+                should.exist account
+                account.pwd.should.be.equal "password"
+                account.login.should.be.equal "newLog"
+                account.service.should.be.equal "cozyCloud"
+                done()
+
+
+descibe "Upsert", ->
+
+    after (done) ->
+        client.del "account/789/", (error, response, body) ->
+            done()
+
+    describe "Upsert an account that doesn't exist", ->
+
+        it "When I upsert account with id 789", (done) ->
+            @data =
+                id: "789"
+                pwd: "password"
+                login: "log"
+                service: "cozyCloud"
+            Account.updateOrCreateAccount @data, (err) =>
+                @err = err
+                done()
+
+        it "Then no error should be returned", ->
+            should.not.exist @err
+
+        it "And account with id 789 exists", (done) ->
+            Account.findAccount 789, (err, updatedAccount) =>
+                should.not.exist err
+                should exist updatedAccount
+                updatedAccount.pwd.should.be.equal "password"
+                updatedAccount.login.should.be.equal "log"
+                updatedAccount.service.should.be.equal "cozyCloud"
+                done()
+
+    describe "Upsert an account that exists", ->
+
+        it "When I upsert account with id 789", (done) ->
+            @data =
+                id: "789"
+                pwd: "newPassword"
+                login: "newLog"
+                service: "cozyCloud789"
+            Account.updateOrCreateAccount @data, (err) =>
+                @err = err
+                done()
+
+        it "Then no error should be returned", ->
+            should.not.exist @err
+
+        it "And account with id 789 exists", (done) ->
+            Account.findAccount 789, (err, updatedAccount) =>
+                should.not.exist err
+                should exist updatedAccount
+                updatedAccount.pwd.should.be.equal "newPassword"
+                updatedAccount.login.should.be.equal "newLog"
+                updatedAccount.service.should.be.equal "cozyCloud789"
+                done()
+
+describe "Delete an account", ->
+    before (done) ->
+        data =
+            pwd: "password"
+            login: "log"
+            service: "cozyCLoud"
+        client.post 'account/123/', data, (err, res, body) ->
+            done()
+
+    after (done) ->
+        client.del "account/123/", (err, res) ->
+                done()
+
+    describe "Delete an account that doesn't exist", ->
+
+        it "When I delete Document with id 456", (done) ->
+            account = new Account id:456
+            account.destroy (err) =>
+                @err = err
+                done()
+
+        it "Then an error should be returned", ->
+            should.exist @err
+
+    describe "Delete an account that exist", ->
+
+        it "When I delete document with id 123", (done) ->
+            account = new Account id:123
+            account.destroy (err) =>
+                @err = err
+                done()
+
+        it "Then no error is returned", ->
+            should.not.exist @err
+
+        it "And account with id 321 shouldn't exist in Database", (done) ->
+            Account.exists 123, (err, isExist) =>
+                isExist.should.not.be.ok
+                done()
