@@ -715,16 +715,18 @@ describe "Requests", ->
 describe "Initialize keys", ->
 
     before (done) ->
-        data =
-            email: "user@CozyCloud.CC"
-            timezone: "Europe/Paris"
-            password: "pwd_user"
-            docType: "User"
-        client.post 'data/102/', data, (err, res, body) =>
-            done()
+        client.del 'data/102/', (err, res, body) =>
+            data =
+                email: "user@CozyCloud.CC"
+                timezone: "Europe/Paris"
+                password: "user_pwd"
+                docType: "User"
+            client.post 'data/102/', data, (err, res, body) =>
+                done()
 
     it "When I initialize keys", (done) ->
-        Prox.initializeKeys "password", (err) =>
+        data = pwd: "password"
+        Prox.initializeKeys data, (err) =>
             @err = err
             done()
 
@@ -734,7 +736,8 @@ describe "Initialize keys", ->
 describe "Update keys", ->
 
     it "When I update keys", (done) ->
-        Prox.updateKeys "newPassword", (err) =>
+        data = pwd: "newPassword"
+        Prox.updateKeys data, (err) =>
             @err = err
             done()
 
@@ -754,18 +757,18 @@ describe "Delete keys", ->
 describe "Initialize keys in a second connexion", ->
 
     it "When I initialize keys", (done) ->
-        Prox.initializeKeys "password", (err) =>
+        data = pwd: "newPassword"
+        Prox.initializeKeys data, (err) =>
             @err = err
             done()
 
     it "Then no error is returned", ->
         should.not.exist @err
 
-
 describe "Create an account", ->
 
     after (done) ->
-        client.del "account/123/", (err, res) ->
+        client.del "account/123/", (err, res, body) =>
                 done()
 
     describe "Create an account without id", ->
@@ -784,16 +787,11 @@ describe "Create an account", ->
             should.exist @account.id
             @id = @account.id
 
-        it "And account should be in the database", ->
+        it "And account should be in the database", (done) ->
             Note.exists @id, (err, isExist) =>
                 should.not.exist err
                 isExist.should.be.equal true
-
-        it "And password should be encrypted", (done) ->
-            Note.find @id, (err, note) =>
-                should.not.exist err
-                should.exist note.pwd
-                note.pwd.should.be.not.equal "password"
+                done()
 
     describe "Create an account with a specific id", ->
 
@@ -810,18 +808,13 @@ describe "Create an account", ->
 
         it "Then id 123 should be returned", ->
             should.exist @account.id
-            @account.id should.be.equal "123"
+            @account.id.should.be.equal "123"
 
-        it "And account should be in the database", ->
+        it "And account should be in the database", (done) ->
             Note.exists 123, (err, isExist) =>
                 should.not.exist err
                 isExist.should.be.equal true
-
-        it "And password should be encrypted", (done) ->
-            Note.find @id, (err, note) =>
-                should.not.exist err
-                should.exist note.pwd
-                note.pwd.should.be.not.equal "password"
+                done()
 
     describe "Try to create an account without field 'pwd' ", ->
         after ->
@@ -867,12 +860,12 @@ describe "Find an account", ->
         data =
             pwd: "password"
             login: "log"
-            service: "cozyCLoud"
+            service: "cozyCloud"
         client.post 'account/123/', data, (err, res, body) ->
             done()
 
     after (done) ->
-        client.del "account/123/", (err, res) ->
+        client.del "account/123/", (err, res, body) ->
                 done()
 
     describe "Try to find an account that doesn't exist", ->
@@ -897,13 +890,9 @@ describe "Find an account", ->
 
         it "And account should be returned", ->
             should.exist @account
-            res =
-                id: "123"
-                pwd: "password"
-                login: "log"
-                service: "CozyCloud"
-                docType: "Account"
-            @account.should.be.deep.equal res
+            @account.pwd.should.be.equal "password"
+            @account.login.should.be.equal "log"
+            @account.service.should.be.equal "cozyCloud"
 
 
 describe "Existence of an account", ->
@@ -917,7 +906,7 @@ describe "Existence of an account", ->
             done()
 
     after (done) ->
-        client.del "account/123/", (err, res) ->
+        client.del "account/123/", (err, res, body) ->
                 done()
 
     describe "Check existence of an account that exists in the database", ->
@@ -946,7 +935,7 @@ describe "Existence of an account", ->
             should.not.exist @err
 
         it "And response should be negative", ->
-            isExist.should.be.equal false
+            @isExist.should.be.equal false
 
 describe "Update an account", ->
 
@@ -958,19 +947,20 @@ describe "Update an account", ->
 
         client.post 'account/123/', data, (err, res, body) ->
             done()
-        @account = new Account data
+        @account = new MailBox data
 
     after (done) ->
-        client.del "account/123/", (err, res) ->
+        client.del "account/123/", (err, res, body) ->
             done()
 
     describe "Update an account that doesn't exist", ->
         after ->
             @err = null
+            @account = null
 
         it "When I update account with id 456", (done) ->
             @account.id = "456"
-            @account.save (err) =>
+            @account.saveAccount (err) =>
                 @err = err
                 done()
 
@@ -978,12 +968,17 @@ describe "Update an account", ->
             should.exist @err
 
     describe "Update an account that exist with 'pwd'", ->
+        after ->
+            @account = null
+
         it "When I update account with id 123 with a field 'pwd' ", (done)->
-            @account.id = "123"
-            @account.pwd = "newPassword"
-            @account.login = "newLog"
-            @account.service = "newService"
-            @accout.save (err) =>
+            data =
+                id: "123"
+                pwd: "newPassword"
+                login: "newLog"
+                service: "newService"
+            @account = new MailBox data
+            @account.saveAccount (err) =>
                 @err = err
                 done()
 
@@ -999,13 +994,15 @@ describe "Update an account", ->
                 updatedAccount.service.should.be.equal "newService"
                 done()
 
-    describe "Try to update an account sithout field 'pwd'", ->
+    describe "Try to update an account without field 'pwd'", ->
 
         it "When I try to update account with id 123", (done) ->
-            @account.id = "123"
-            @account.login = "newLog"
-            @account.service = "newService"
-            @accout.save (err) =>
+            data =
+                id: "123"
+                login: "newLog"
+                service: "newService"
+            @account = new MailBox data
+            @account.saveAccount (err) =>
                 @err = err
                 done()
 
@@ -1023,7 +1020,7 @@ describe "Merge an account", ->
 
         client.post 'account/123/', data, (err, res, body) ->
             done()
-        @account = new Account data
+        @account = new MailBox data
 
     after (done) ->
         client.del "account/123/", (err, res, body) ->
@@ -1063,21 +1060,21 @@ describe "Merge an account", ->
                 done()
 
 
-descibe "Upsert", ->
+describe "Upsert", ->
 
     after (done) ->
-        client.del "account/789/", (error, response, body) ->
+        client.del "account/789/", (err, res, body) ->
             done()
 
     describe "Upsert an account that doesn't exist", ->
 
         it "When I upsert account with id 789", (done) ->
-            @data =
+            data =
                 id: "789"
                 pwd: "password"
                 login: "log"
                 service: "cozyCloud"
-            Account.updateOrCreateAccount @data, (err) =>
+            MailBox.updateOrCreateAccount 789, data, (err) =>
                 @err = err
                 done()
 
@@ -1085,9 +1082,9 @@ descibe "Upsert", ->
             should.not.exist @err
 
         it "And account with id 789 exists", (done) ->
-            Account.findAccount 789, (err, updatedAccount) =>
+            MailBox.findAccount 789, (err, updatedAccount) =>
                 should.not.exist err
-                should exist updatedAccount
+                should.exist updatedAccount
                 updatedAccount.pwd.should.be.equal "password"
                 updatedAccount.login.should.be.equal "log"
                 updatedAccount.service.should.be.equal "cozyCloud"
@@ -1096,12 +1093,12 @@ descibe "Upsert", ->
     describe "Upsert an account that exists", ->
 
         it "When I upsert account with id 789", (done) ->
-            @data =
+            data =
                 id: "789"
                 pwd: "newPassword"
                 login: "newLog"
                 service: "cozyCloud789"
-            Account.updateOrCreateAccount @data, (err) =>
+            MailBox.updateOrCreateAccount 789, data, (err) =>
                 @err = err
                 done()
 
@@ -1109,9 +1106,9 @@ descibe "Upsert", ->
             should.not.exist @err
 
         it "And account with id 789 exists", (done) ->
-            Account.findAccount 789, (err, updatedAccount) =>
+            MailBox.findAccount 789, (err, updatedAccount) =>
                 should.not.exist err
-                should exist updatedAccount
+                should.exist updatedAccount
                 updatedAccount.pwd.should.be.equal "newPassword"
                 updatedAccount.login.should.be.equal "newLog"
                 updatedAccount.service.should.be.equal "cozyCloud789"
@@ -1127,14 +1124,15 @@ describe "Delete an account", ->
             done()
 
     after (done) ->
-        client.del "account/123/", (err, res) ->
+        client.del "account/123/", (err, res, body) ->
+            client.del "data/102/", (err, res, body) ->
                 done()
 
     describe "Delete an account that doesn't exist", ->
 
         it "When I delete Document with id 456", (done) ->
-            account = new Account id:456
-            account.destroy (err) =>
+            account = new MailBox id: 456
+            account.destroyAccount (err) =>
                 @err = err
                 done()
 
@@ -1144,8 +1142,8 @@ describe "Delete an account", ->
     describe "Delete an account that exist", ->
 
         it "When I delete document with id 123", (done) ->
-            account = new Account id:123
-            account.destroy (err) =>
+            account = new MailBox id: 123
+            account.destroyAccount (err) =>
                 @err = err
                 done()
 
@@ -1153,6 +1151,6 @@ describe "Delete an account", ->
             should.not.exist @err
 
         it "And account with id 321 shouldn't exist in Database", (done) ->
-            Account.exists 123, (err, isExist) =>
+            MailBox.exists 123, (err, isExist) =>
                 isExist.should.not.be.ok
                 done()
