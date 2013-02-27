@@ -142,11 +142,11 @@ account.destroy (err) ->
 ### Accounts ###
 
 # Initialize keys
-Prox.initializeKeys { pwd: "password"}, (err) ->
+Prox.initializeKeys pwd: "password", (err) ->
     console.log err
 
 # Update keys
-Prox.updateKeys { pwd: "password"}, (err) ->
+Prox.updateKeys pwd: "password", (err) ->
     console.log err
 
 # Delete keys

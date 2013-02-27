@@ -323,7 +323,7 @@ describe "Upsert attributes", ->
         it "Then no error should be returned.", ->
             should.not.exist @err
 
-        it "Then the document with id 654 should exist in Database", (done) ->
+        it "And the document with id 654 should exist in Database", (done) ->
             Note.find @data.id, (err, updatedNote) =>
                 should.not.exist err
                 updatedNote.id.should.equal "654"
@@ -345,7 +345,7 @@ describe "Upsert attributes", ->
         it "Then no data should be returned", ->
             should.not.exist @err
 
-        it "Then the document with id 654 should be updated", (done) ->
+        it "And the document with id 654 should be updated", (done) ->
             Note.find @data.id, (err, updatedNote) =>
                 should.not.exist err
                 updatedNote.id.should.equal "654"
@@ -450,7 +450,7 @@ describe "Search features", ->
             client.del "data/index/clear-all/", (err, response) ->
                 done()
 
-        it "Given I index four notes", (done) ->
+        it "When given I index four notes", (done) ->
             async.series [
                 createNoteFunction "Note 01", "little stories begin"
                 createNoteFunction "Note 02", "great dragons are coming"
@@ -459,7 +459,7 @@ describe "Search features", ->
             ], ->
                 done()
 
-        it "When I send a request to search the notes containing dragons", (done) ->
+        it "And I send a request to search the notes containing dragons", (done) ->
             Note.search "dragons", (err, notes) =>
                 @notes = notes
                 done()
@@ -504,7 +504,7 @@ describe "Attachments", ->
             stream = @note.getFile "test.png", -> done()
             stream.pipe fs.createWriteStream('./test-get.png')
 
-        it "I got the same file I attached before", ->
+        it "Then I got the same file I attached before", ->
             fileStats = fs.statSync('./test.png')
             resultStats = fs.statSync('./test-get.png')
             resultStats.size.should.equal fileStats.size
@@ -525,7 +525,8 @@ describe "Attachments", ->
                 done()
             stream.pipe fs.createWriteStream('./test-get.png')
 
-        it "I got an error", ->
+
+        it "Then I got an error", ->
             should.exist @err
 
 
@@ -850,7 +851,7 @@ describe "Create an account", ->
                 @account = account
                 done()
 
-        it "The error should be returned", ->
+        it "Then error should be returned", ->
             should.exist @err
 
 
