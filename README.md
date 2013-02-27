@@ -105,7 +105,7 @@ Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
 Note.removeRequest "every_notes", (err) ->
      console.log err
 
-### Accounts ###
+### Account ###
 
 # Existence
 MailBox.existAccount 123, (err, isExist) ->
@@ -113,7 +113,7 @@ MailBox.existAccount 123, (err, isExist) ->
 
 # Find
 MailBox.findAccount 321, (err, account) ->
-    console.log note
+    console.log account
 
 # Create
 data =
@@ -137,6 +137,20 @@ MailBox.createOrUpdateAccount @data.id, (err, account) ->
 
 # Delete
 account.destroy (err) ->
+    console.log err
+
+### Accounts ###
+
+# Initialize keys
+Prox.initializeKeys { pwd: "password"}, (err) ->
+    console.log err
+
+# Update keys
+Prox.updateKeys { pwd: "password"}, (err) ->
+    console.log err
+
+# Delete keys
+Prox.deleteKeys (err) ->
     console.log err
 ```
 
