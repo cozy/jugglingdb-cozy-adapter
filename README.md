@@ -104,7 +104,6 @@ Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
 # Remove request
 Note.removeRequest "every_notes", (err) ->
      console.log err
-```
 
 ### Accounts ###
 
@@ -139,6 +138,7 @@ MailBox.createOrUpdateAccount @data.id, (err, account) ->
 # Delete
 account.destroy (err) ->
     console.log err
+```
 
 ## Build & tests
 
