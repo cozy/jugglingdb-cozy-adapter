@@ -105,52 +105,37 @@ Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
 Note.removeRequest "every_notes", (err) ->
      console.log err
 
+
 ### Account ###
 
-# Existence
-MailBox.existAccount 123, (err, isExist) ->
-    console.log isExist
+# Create
+dataMailBox =
+    name: "test mailBox"
+    id: "110"
+MailBox.create dataMailBox, (err, mailBox) =>
+    dataAccount =
+        pwd: "password"
+        login: "log"
+    mailBox.createAccount dataAccount, (err, account) ->
+        console.log account.id
 
-# Find
-MailBox.findAccount 321, (err, account) ->
+# Get
+mailBox.getAccount (err, account) ->
     console.log account
 
-# Create
-data =
-    login: "log"
-    pwd: "password"
-    service: "cozyCloud"
-MailBox.createAccount data, (err, account) ->
-    console.log account.id
-
 # Update
-account.saveAccount (err) ->
+data =
+    pwd: "newPassword"
+    login: "newLog"
+mailBox.updateAccount data, (err) ->
     console.log err
 
 # Update attributes
-account.mergeAccount login: "newLog", (err) ->
-    console.log err
-
-# Upsert
-MailBox.createOrUpdateAccount @data.id, (err, account) ->
+mailBox.mergeAccount login: "newLog", (err) ->
     console.log err
 
 # Delete
-account.destroy (err) ->
-    console.log err
-
-### Accounts ###
-
-# Initialize keys
-Prox.initializeKeys pwd: "password", (err) ->
-    console.log err
-
-# Update keys
-Prox.updateKeys pwd: "password", (err) ->
-    console.log err
-
-# Delete keys
-Prox.deleteKeys (err) ->
+mailBox.destroy (err) ->
     console.log err
 ```
 
