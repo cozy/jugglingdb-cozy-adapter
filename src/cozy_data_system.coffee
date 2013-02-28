@@ -77,9 +77,9 @@ class exports.CozyDataSystem
          @client.get "data/#{id}/", (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode == 404
+            else if response.statusCode is 404
                 callback null, null
-            else if body.docType != model
+            else if body.docType isnt model
                 callback null, null
             else
                 callback null, new @_models[model].model(body)
@@ -96,9 +96,9 @@ class exports.CozyDataSystem
         @client.post path, data, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode == 409
+            else if response.statusCode is 409
                 callback new Error("This document already exists")
-            else if response.statusCode != 201
+            else if response.statusCode isnt 201
                 callback new Error("Server error occured.")
             else
                 callback null, body._id
@@ -109,9 +109,9 @@ class exports.CozyDataSystem
         @client.put "data/#{data.id}/", data, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode == 404
+            else if response.statusCode is 404
                 callback new Error("Document not found")
-            else if response.statusCode != 200
+            else if response.statusCode isnt 200
                 callback new Error("Server error occured.")
             else
                 callback()
@@ -121,9 +121,9 @@ class exports.CozyDataSystem
         @client.put "data/merge/#{id}/", data, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode == 404
+            else if response.statusCode is 404
                 callback new Error("Document not found")
-            else if response.statusCode != 200
+            else if response.statusCode isnt 200
                 callback new Error("Server error occured.")
             else
                 callback()
@@ -135,11 +135,11 @@ class exports.CozyDataSystem
         @client.put "data/upsert/#{data.id}/", data, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode != 200 and response.statusCode != 201
+            else if response.statusCode isnt 200 and response.statusCode isnt 201
                 callback new Error("Server error occured.")
-            else if response.statusCode == 200
+            else if response.statusCode is 200
                 callback null
-            else if response.statusCode == 201
+            else if response.statusCode is 201
                 callback null, body._id
 
 
@@ -152,9 +152,9 @@ class exports.CozyDataSystem
         @client.del "data/#{id}/", (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode == 404
+            else if response.statusCode is 404
                 callback new Error("Document not found")
-            else if response.statusCode != 204
+            else if response.statusCode isnt 204
                 callback new Error("Server error occured.")
             else
                 callback()
@@ -171,7 +171,7 @@ class exports.CozyDataSystem
         @client.post "data/index/#{model.id}", data, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode != 200
+            else if response.statusCode isnt 200
                 callback new Error(body)
             else
                 callback null
@@ -188,7 +188,7 @@ class exports.CozyDataSystem
                      (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode != 200
+            else if response.statusCode isnt 200
                 callback new Error(body)
             else
                 results = []
@@ -199,7 +199,7 @@ class exports.CozyDataSystem
 
     # Save a file into data system and attach it to current model.
     attachFile: (model, path, data, callback) ->
-        if typeof(data) == "function"
+        if typeof(data) is "function"
             callback = data
             data = null
 
@@ -229,14 +229,14 @@ class exports.CozyDataSystem
     checkError: (error, response, body, code, callback) ->
         if error
             callback error
-        else if response.statusCode != code
+        else if response.statusCode isnt code
             callback new Error(body)
         else
             callback null
 
     # Create a new couchdb view which is typed with current model type.
     defineRequest: (model, name, request, callback) ->
-        if typeof(request) == "function"
+        if typeof(request) is "function"
             map = request
         else
             map = request.map
@@ -259,13 +259,13 @@ class exports.CozyDataSystem
 
     # Return defined request result.
     request: (model, name, params, callback) ->
-        callback = params if typeof(params) == "function"
+        callback = params if typeof(params) is "function"
 
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
         @client.post path, params, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode != 200
+            else if response.statusCode isnt 200
                 callback new Error(body)
             else
                 results = []
@@ -277,13 +277,13 @@ class exports.CozyDataSystem
     # Return defined request result in the format given by data system
     # (couchDB style).
     rawRequest: (model, name, params, callback) ->
-        callback = params if typeof(params) == "function"
+        callback = params if typeof(params) is "function"
 
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/"
         @client.post path, params, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode != 200
+            else if response.statusCode isnt 200
                 callback new Error(body)
             else
                 callback null, body
@@ -297,7 +297,7 @@ class exports.CozyDataSystem
 
     # Delete all results that should be returned by the request.
     requestDestroy: (model, name, params, callback) ->
-        callback = params if typeof(params) == "function"
+        callback = params if typeof(params) is "function"
 
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/destroy/"
         @client.put path, params, (error, response, body) =>
@@ -329,7 +329,7 @@ class exports.CozyDataSystem
     _forDB: (model, data) ->
         res = {}
         Object.keys(data).forEach (propName) =>
-            if @whatTypeName(model, propName) == 'JSON'
+            if @whatTypeName(model, propName) is 'JSON'
                 res[propName] = JSON.stringify(data[propName])
             else
                 res[propName] = data[propName]
@@ -357,9 +357,9 @@ class exports.CozyDataSystem
                     @client.get "account/#{model.account}/", (err, res, body) =>
                         if err
                             callback err
-                        else if res.statusCode == 404
+                        else if res.statusCode is 404
                             callback new Error("The account desn't exist")
-                        else if body.docType != "Account"
+                        else if body.docType isnt "Account"
                             callback new Error("The document isn't an account")
                         else
                             callback null, body
@@ -380,10 +380,10 @@ class exports.CozyDataSystem
                     @client.post 'account/', data, (err, res, body) =>
                         if err
                             callback err
-                        else if res.statusCode == 401
+                        else if res.statusCode is 401
                             callback new Error("The account doesn't have a field
                              'pwd'")
-                        else if res.statusCode != 201
+                        else if res.statusCode isnt 201
                             callback new Error("Server error occured.")
                         else
                             model.account = body._id
@@ -407,12 +407,12 @@ class exports.CozyDataSystem
                     (err, res, body) =>
                         if err
                             callback err
-                        else if res.statusCode == 404
+                        else if res.statusCode is 404
                             callback new Error("Document not found")
-                        else if res.statusCode == 401
+                        else if res.statusCode is 401
                             callback new Error("The account doesn't have a field
                              'pwd'")
-                        else if res.statusCode != 200
+                        else if res.statusCode isnt 200
                             callback new Error("Server error occured.")
                         else
                             callback()
@@ -433,9 +433,9 @@ class exports.CozyDataSystem
                     (err, res, body) =>
                         if err
                             callback err
-                        else if res.statusCode == 404
+                        else if res.statusCode is 404
                             callback new Error("Document not found")
-                        else if res.statusCode != 200
+                        else if res.statusCode isnt 200
                             callback new Error("Server error occured.")
                         else
                             callback()
@@ -455,9 +455,9 @@ class exports.CozyDataSystem
                     @client.del "account/#{model.id}/", (err, res, body) =>
                         if err
                             callback err
-                        else if res.statusCode == 404
+                        else if res.statusCode is 404
                             callback new Error("Document not found")
-                        else if res.statusCode != 204
+                        else if res.statusCode isnt 204
                             callback new Error("Server error occured.")
                         else
                             model.account = null
