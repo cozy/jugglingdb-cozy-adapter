@@ -374,9 +374,8 @@ class exports.CozyDataSystem
                 callback new Error("The linked model doesn't exist")
             else
                 if model.account?
-                    callback new Error("The model have already an account")
+                    callback new Error("The model has already an account")
                 else
-                    data.modelId = model.id
                     @client.post 'account/', data, (err, res, body) =>
                         if err
                             callback err
@@ -387,7 +386,8 @@ class exports.CozyDataSystem
                             callback new Error("Server error occured.")
                         else
                             model.account = body._id
-                            data.id = body._id
+                            model.updateAttributes
+                            data._id = body._id
                             callback null, data
 
 
@@ -402,7 +402,6 @@ class exports.CozyDataSystem
                 if not model.account?
                     callback new Error("The model doesn't have an account")
                 else
-                    data.modelId = model.id
                     @client.put "account/#{model.account}/", data,
                     (err, res, body) =>
                         if err
@@ -461,4 +460,5 @@ class exports.CozyDataSystem
                             callback new Error("Server error occured.")
                         else
                             model.account = null
+                            model.updateAccount
                             callback()

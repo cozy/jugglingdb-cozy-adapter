@@ -740,8 +740,8 @@ describe "Account", ->
                         @mailBox = mailBox
                         done()
 
-            it "Then id of mailbox should be save in the account", ->
-                @account.modelId.should.equal @mailBox.id
+            it "Then id of the account should be save in the mailBox", ->
+                @account._id.should.be.equal @mailBox.account
 
         describe "Try to create an account without field 'pwd' ", ->
 
@@ -815,7 +815,7 @@ describe "Account", ->
                 should.exist @account
                 @account.pwd.should.be.equal "password"
                 @account.login.should.be.equal "log"
-                @account.modelId.should.be.equal "110"
+                @account._id.should.be.equal @mailBox.account
 
 
     describe "Update an account", ->
@@ -859,7 +859,7 @@ describe "Account", ->
                     should.not.exist err
                     updatedAccount.pwd.should.be.equal "newPassword"
                     updatedAccount.login.should.be.equal "newLog"
-                    updatedAccount.modelId.should.be.equal "110"
+                    updatedAccount._id.should.be.equal @mailBox.account
                     done()
 
         describe "Try to update an account without field 'pwd'", ->
@@ -912,7 +912,7 @@ describe "Account", ->
                     should.not.exist err
                     should.exist updatedAccount
                     updatedAccount.pwd.should.be.equal "newPassword"
-                    updatedAccount.modelId.should.be.equal "110"
+                    updatedAccount._id.should.be.equal @mailBox.account
                     updatedAccount.login.should.be.equal "newLogin"
                     done()
 
