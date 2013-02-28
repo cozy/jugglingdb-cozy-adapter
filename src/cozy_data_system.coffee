@@ -38,22 +38,6 @@ class exports.CozyDataSystem
             @applyRequest descr.model.modelName, params, callback
         descr.model._forDB = (data) =>
             @_forDB descr.model.modelName, data
-        #descr.model::_forDB = (data) =>
-            #@_adapter()._forDB data
-        descr.model.initializeKeys = (pwd, callback) =>
-            @initializeKeys descr.model.modelName, pwd, callback
-        descr.model.updateKeys = (pwd, callback) =>
-            @updateKeys descr.model.modelName, pwd, callback
-        descr.model.deleteKeys = (callback) =>
-            @deleteKeys descr.model.modelName, callback
-        descr.model.createAccount = (data, callback) =>
-            @createAccount descr.model.modelName, data, callback
-        descr.model.findAccount = (id, callback) =>
-            @findAccount descr.model.modelName, id, callback
-        descr.model.existAccount = (id, callback) =>
-            @existAccount descr.modelName, id, callback
-        descr.model.updateOrCreateAccount = (id, data, callback) =>
-            @updateOrCreateAccount descr.model.modelName, id, data, callback
 
         descr.model::index = (fields, callback) ->
             @_adapter().index @, fields, callback
@@ -65,12 +49,17 @@ class exports.CozyDataSystem
             @_adapter().saveFile  @, path, filePath, callback
         descr.model::removeFile = (path, callback) ->
             @_adapter().removeFile  @, path, callback
-        descr.model::saveAccount = (callback) ->
-            @_adapter().saveAccount @, callback
+        descr.model::createAccount = (data, callback) ->
+            @_adapter().createAccount @, data, callback
+        descr.model::getAccount = (callback) ->
+            @_adapter().getAccount @, callback
+        descr.model::updateAccount = (data, callback) ->
+            @_adapter().updateAccount @, data, callback
         descr.model::mergeAccount = (data, callback) ->
             @_adapter().mergeAccount @, data, callback
         descr.model::destroyAccount = (callback) ->
             @_adapter().destroyAccount @, callback
+
 
     # Check existence of model in the data system.
     exists: (model, id, callback) ->
@@ -346,124 +335,130 @@ class exports.CozyDataSystem
                 res[propName] = data[propName]
         return res
 
+
     # Weird rewrite due to a juggling DB on array parsing.
     whatTypeName: (model, propName) ->
         ds = @schema.definitions[model]
         return ds.properties[propName] && ds.properties[propName].type.name
 
-    initializeKeys: (model, pwd, callback) ->
-        @client.post "accounts/password/", pwd, (err, res, body) =>
-            if err
-                callback err
-            else
-                callback()
-
-    updateKeys: (model, pwd, callback) ->
-        @client.put "accounts/password/", pwd, (err, res, body) =>
-            if err
-                callback err
-            else
-                callback()
-
-    deleteKeys: (model, callback) ->
-        @client.del "accounts/", (err, res, body) =>
-            if err
-                callback err
-            else
-                callback()
-
-    # Check existence of model in the data system.
-    existAccount: (model, id, callback) ->
-        @client.get "account/exist/#{id}/", (err, res, body) =>
-            if err
-                callback err
-            else if not body? or not body.exist?
-                callback new Error("Data system returned invalid data.")
-            else
-                callback null, body.exist
 
     # Find an account with its ID. Returns it if it is found else it
     # returns null
-    findAccount: (model, id, callback) ->
-         @client.get "account/#{id}/", (err, res, body) =>
+    getAccount: (model, callback) ->
+        @exists model, model.id, (err, res) =>
             if err
                 callback err
-            else if res.statusCode == 404
-                callback null, null
-            else if body.docType != "Account"
-                callback null, null
+            else if not res
+                callback new Error("The linked model doesn't exist")
             else
-                callback null, new @_models[model].model(body)
+                if not model.account?
+                    callback new Error("The model doesn't have an account")
+                else
+                    @client.get "account/#{model.account}/", (err, res, body) =>
+                        if err
+                            callback err
+                        else if res.statusCode == 404
+                            callback new Error("The account desn't exist")
+                        else if body.docType != "Account"
+                            callback new Error("The document isn't an account")
+                        else
+                            callback null, body
 
-    # Create a new account from given data. If no ID is set a new one
-    # is automatically generated.
+
+    # Create a new account from given data.
     createAccount: (model, data, callback) ->
-        path = "account/"
-        if data.id?
-            path += "#{data.id}/"
-            delete data.id
-        @client.post path, data, (err, res, body) =>
+        @exists model, model.id, (err, res) =>
             if err
                 callback err
-            else if res.statusCode == 409
-                callback new Error("This document already exists")
-            else if res.statusCode != 201
-                callback new Error("Server error occured.")
+            else if not res
+                callback new Error("The linked model doesn't exist")
             else
-                callback null, {id: body._id}
+                if model.account?
+                    callback new Error("The model have already an account")
+                else
+                    data.modelId = model.id
+                    @client.post 'account/', data, (err, res, body) =>
+                        if err
+                            callback err
+                        else if res.statusCode == 401
+                            callback new Error("The account doesn't have a field
+                             'pwd'")
+                        else if res.statusCode != 201
+                            callback new Error("Server error occured.")
+                        else
+                            model.account = body._id
+                            data.id = body._id
+                            callback null, data
 
-    # Save all model attributes to DB.
-    saveAccount: (model, callback) ->
-        #data.docType = "Account"
-        @client.put "account/#{model.id}/", model, (err, res, body) =>
+
+    # Update all account attributes to DB.
+    updateAccount: (model, data, callback) ->
+        @exists model, model.id, (err, res) =>
             if err
                 callback err
-            else if res.statusCode == 404
-                callback new Error("Document not found")
-            else if res.statusCode != 200
-                callback new Error("Server error occured.")
+            else if not res
+                callback new Error("The linked model doesn't exist")
             else
-                callback()
+                if not model.account?
+                    callback new Error("The model doesn't have an account")
+                else
+                    data.modelId = model.id
+                    @client.put "account/#{model.account}/", data,
+                    (err, res, body) =>
+                        if err
+                            callback err
+                        else if res.statusCode == 404
+                            callback new Error("Document not found")
+                        else if res.statusCode == 401
+                            callback new Error("The account doesn't have a field
+                             'pwd'")
+                        else if res.statusCode != 200
+                            callback new Error("Server error occured.")
+                        else
+                            callback()
 
-    # Save only given attributes to DB.
+
+    # Update only given attributes to DB.
     mergeAccount: (model, data, callback) ->
-        @client.put "account/merge/#{model.id}/", data, (err, res, body) =>
+        @exists model, model.id, (err, res) =>
             if err
                 callback err
-            else if res.statusCode == 404
-                callback new Error("Document not found")
-            else if res.statusCode != 200
-                callback new Error("Server error occured.")
+            else if not res
+                callback new Error("The linked model doesn't exist")
             else
-                callback()
-
-    # Save only given attributes to DB. If model does not exist it is created.
-    # It requires an ID.
-    updateOrCreateAccount: (model, id, data, callback) ->
-        data.docType = model
-        @client.put "account/upsert/#{id}/", data, (err, res, body) =>
-            if err
-                callback err
-            else if res.statusCode != 200 and res.statusCode != 201
-                callback new Error("Server error occured.")
-            else if res.statusCode == 200
-                callback null
-            else if res.statusCode == 201
-                callback null, body._id
+                if not model.account?
+                    callback new Error("The model doesn't have an account")
+                else
+                    @client.put "account/merge/#{model.account}/", data,
+                    (err, res, body) =>
+                        if err
+                            callback err
+                        else if res.statusCode == 404
+                            callback new Error("Document not found")
+                        else if res.statusCode != 200
+                            callback new Error("Server error occured.")
+                        else
+                            callback()
 
 
-    # Destroy model in database.
-    # Call method like this:
-    #     account = new Account id: 123
-    #     account.destroyAccount ->
-    #         ...
+    # Destroy account in database.
     destroyAccount: (model, callback) ->
-        @client.del "account/#{model.id}/", (err, res, body) =>
+        @exists model, model.id, (err, res) =>
             if err
                 callback err
-            else if res.statusCode == 404
-                callback new Error("Document not found")
-            else if res.statusCode != 204
-                callback new Error("Server error occured.")
+            else if not res
+                callback new Error("The linked model doesn't exist")
             else
-                callback()
+                if not model.account?
+                    callback new Error("The model doesn't have an account")
+                else
+                    @client.del "account/#{model.id}/", (err, res, body) =>
+                        if err
+                            callback err
+                        else if res.statusCode == 404
+                            callback new Error("Document not found")
+                        else if res.statusCode != 204
+                            callback new Error("Server error occured.")
+                        else
+                            model.account = null
+                            callback()
