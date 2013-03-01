@@ -381,14 +381,17 @@ class exports.CozyDataSystem
                             callback err
                         else if res.statusCode is 401
                             callback new Error("The account doesn't have a field
-                             'pwd'")
+                                'password'")
                         else if res.statusCode isnt 201
                             callback new Error("Server error occured.")
                         else
-                            model.account = body._id
-                            model.updateAttributes
-                            data._id = body._id
-                            callback null, data
+                            @updateAttributes model, model.id, account: body._id, (err) =>
+                                if err
+                                   err
+                                else
+                                    model.account = body._id
+                                    data._id = body._id
+                                    callback null, data
 
 
     # Update all account attributes to DB.
@@ -410,7 +413,7 @@ class exports.CozyDataSystem
                             callback new Error("Document not found")
                         else if res.statusCode is 401
                             callback new Error("The account doesn't have a field
-                             'pwd'")
+                             'password'")
                         else if res.statusCode isnt 200
                             callback new Error("Server error occured.")
                         else
@@ -451,7 +454,7 @@ class exports.CozyDataSystem
                 if not model.account?
                     callback new Error("The model doesn't have an account")
                 else
-                    @client.del "account/#{model.id}/", (err, res, body) =>
+                    @client.del "account/#{model.account}/", (err, res, body) =>
                         if err
                             callback err
                         else if res.statusCode is 404
@@ -459,6 +462,9 @@ class exports.CozyDataSystem
                         else if res.statusCode isnt 204
                             callback new Error("Server error occured.")
                         else
-                            model.account = null
-                            model.updateAccount
-                            callback()
+                            @updateAttributes model, model.id, account: null, (err) =>
+                                if err
+                                   callback err
+                                else
+                                    model.account = null
+                                    callback null

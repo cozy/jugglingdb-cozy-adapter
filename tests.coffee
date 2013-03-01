@@ -720,11 +720,11 @@ describe "Account", ->
                     password: "user_pwd"
                     docType: "User"
                 client.post 'data/102/', data, (err, res, body) =>
-                    pwd = pwd: "password"
-                    client.post "accounts/password/", pwd, (err, res, body) =>
+                    password = password: "password"
+                    client.post "accounts/password/", password, (err, res, body) =>
                         done()
 
-        describe "Create an account that doesn't exist with a field 'pwd'", ->
+        describe "Create an account that doesn't exist with a field 'password'", ->
 
             it "When I create the account", (done) ->
                 data =
@@ -732,7 +732,7 @@ describe "Account", ->
                     id: "110"
                 MailBox.create data, (err, mailBox) =>
                     data =
-                        pwd: "password"
+                        password: "password"
                         login: "log"
                     mailBox.createAccount data, (err, account) =>
                         should.not.exist err
@@ -743,7 +743,7 @@ describe "Account", ->
             it "Then id of the account should be save in the mailBox", ->
                 @account._id.should.be.equal @mailBox.account
 
-        describe "Try to create an account without field 'pwd' ", ->
+        describe "Try to create an account without field 'password' ", ->
 
             after ->
                 @err = null
@@ -774,7 +774,7 @@ describe "Account", ->
             it "When I try to create the account", (done) ->
                 data =
                     login: "log"
-                    pwd: "password"
+                    password: "password"
                 @mailBox.createAccount data, (err, account) =>
                     @err = err
                     @account = account
@@ -813,7 +813,7 @@ describe "Account", ->
 
             it "And account should be returned", ->
                 should.exist @account
-                @account.pwd.should.be.equal "password"
+                @account.password.should.be.equal "password"
                 @account.login.should.be.equal "log"
                 @account._id.should.be.equal @mailBox.account
 
@@ -832,7 +832,7 @@ describe "Account", ->
                     id: "105"
                 MailBox.create data, (err, mailBox) =>
                     data =
-                        pwd: "newPassword"
+                        password: "newPassword"
                         login: "newLog"
                     mailBox.updateAccount data, (err) =>
                         @err = err
@@ -841,11 +841,11 @@ describe "Account", ->
             it "Then error should be returned", ->
                 should.exist @err
 
-        describe "Update an account that exists with 'pwd'", ->
+        describe "Update an account that exists with 'password'", ->
 
             it "When I update the account", (done)->
                 data =
-                    pwd: "newPassword"
+                    password: "newPassword"
                     login: "newLog"
                 @mailBox.updateAccount data, (err) =>
                     @err = err
@@ -857,12 +857,12 @@ describe "Account", ->
             it "And the old account should be updated", (done) ->
                 @mailBox.getAccount (err, updatedAccount) =>
                     should.not.exist err
-                    updatedAccount.pwd.should.be.equal "newPassword"
+                    updatedAccount.password.should.be.equal "newPassword"
                     updatedAccount.login.should.be.equal "newLog"
                     updatedAccount._id.should.be.equal @mailBox.account
                     done()
 
-        describe "Try to update an account without field 'pwd'", ->
+        describe "Try to update an account without field 'password'", ->
 
             it "When I try to update the account", (done) ->
                 data =
@@ -888,7 +888,7 @@ describe "Account", ->
                     id: "105"
                 MailBox.create data, (err, mailBox) =>
                     data =
-                        pwd: "newPassword"
+                        password: "newPassword"
                         login: "newLog"
                     mailBox.mergeAccount login: "newLogin", (err) =>
                     @err = err
@@ -911,7 +911,7 @@ describe "Account", ->
                 @mailBox.getAccount (err, updatedAccount) =>
                     should.not.exist err
                     should.exist updatedAccount
-                    updatedAccount.pwd.should.be.equal "newPassword"
+                    updatedAccount.password.should.be.equal "newPassword"
                     updatedAccount._id.should.be.equal @mailBox.account
                     updatedAccount.login.should.be.equal "newLogin"
                     done()
@@ -927,7 +927,7 @@ describe "Account", ->
                     id: "105"
                 MailBox.create data, (err, mailBox) =>
                     data =
-                        pwd: "newPassword"
+                        password: "newPassword"
                         login: "newLog"
                     mailBox.destroyAccount (err) =>
                         @err = err
