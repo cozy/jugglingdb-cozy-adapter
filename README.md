@@ -28,10 +28,10 @@ Check
 [test file](https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/tests.coffee)
 for documented usage of methods available in this adapter.
 
+
+### Documents
+
 ```coffeescript
-
-### Documents ###
-
 # Existence
 Note.exists 123, (err, isExist) ->
     console.log isExist
@@ -59,10 +59,12 @@ Note.createOrUpdate @data.id, (err, note) ->
 # Delete
 note.destroy (err) ->
     console.log err
+```
 
 
-### Indexation ###
+### Indexation
 
+```coffeescript
 # Index document fields
 note.index ["title", "content"], (err) ->
     console.log err
@@ -70,10 +72,12 @@ note.index ["title", "content"], (err) ->
 # Search through indexes
 Note.search "dragons", (err, notes) ->
     console.log notes
+```
 
 
-### Files ###
+### Files
 
+```coffeescript
 # Attach file
 note.attachFile "./test.png", (err) ->
     console.log err
@@ -82,10 +86,12 @@ note.attachFile "./test.png", (err) ->
 stream = @note.getFile "test.png", (err) ->
      console.log err
 stream.pipe fs.createWriteStream('./test-get.png')
+```
 
 
-### Requests ###
+### Requests
 
+```coffeescript
 # Define request
 map = (doc) ->
     emit doc._id, doc
@@ -104,10 +110,11 @@ Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
 # Remove request
 Note.removeRequest "every_notes", (err) ->
      console.log err
+```
 
+### Accounts
 
-### Account ###
-
+```coffeescript
 # Create
 dataMailBox =
     name: "test mailBox"
