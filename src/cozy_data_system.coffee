@@ -377,6 +377,10 @@ class exports.CozyDataSystem
                 if model.account?
                     callback new Error("The model has already an account")
                 else
+                    data =
+                        login: data.login
+                        password: data.password
+                    console.log data
                     @client.post 'account/', data, (err, res, body) =>
                         if err
                             callback err
@@ -407,6 +411,9 @@ class exports.CozyDataSystem
                 if not model.account?
                     callback new Error("The model doesn't have an account")
                 else
+                    data =
+                        login: data.login
+                        password: data.password
                     @client.put "account/#{model.account}/", data,
                     (err, res, body) =>
                         if err
