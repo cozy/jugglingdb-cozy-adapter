@@ -6,14 +6,14 @@ cozy applications to use the Cozy Data System.
 
 ## Setup for RailwayJS
 
-First add it to your project dependencies (package.json file), or install it 
+First add it to your project dependencies (package.json file), or install it
 directly:
 
     npm install jugglingdb-cozy-adapter
 
 Then in your *config/database.json* file, add this:
 
-    { 
+    {
         "driver":   "jugglingdb-cozy-adapter",
         "url": "http://localhost:9101/"
     }
@@ -24,7 +24,7 @@ CouchDB up and running.
 
 ## Usage
 
-Check 
+Check
 [test file](https://github.com/mycozycloud/jugglingdb-cozy-adapter/blob/master/tests.coffee)
 for documented usage of methods available in this adapter.
 
@@ -35,7 +35,7 @@ for documented usage of methods available in this adapter.
 # Existence
 Note.exists 123, (err, isExist) ->
     console.log isExist
-  
+
 # Find
 Note.find 321, (err, note) ->
     console.log note
@@ -53,7 +53,7 @@ note.updateAttributes title: "my new title", (err) ->
     console.log err
 
 # Upsert
-Note.find @data.id, (err, note) ->
+Note.createOrUpdate @data.id, (err, note) ->
     console.log err
 
 # Delete
@@ -104,6 +104,39 @@ Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
 # Remove request
 Note.removeRequest "every_notes", (err) ->
      console.log err
+
+
+### Account ###
+
+# Create
+dataMailBox =
+    name: "test mailBox"
+    id: "110"
+MailBox.create dataMailBox, (err, mailBox) =>
+    dataAccount =
+        pwd: "password"
+        login: "log"
+    mailBox.createAccount dataAccount, (err, account) ->
+        console.log account.id
+
+# Get
+mailBox.getAccount (err, account) ->
+    console.log account
+
+# Update
+data =
+    pwd: "newPassword"
+    login: "newLog"
+mailBox.updateAccount data, (err) ->
+    console.log err
+
+# Update attributes
+mailBox.mergeAccount login: "newLog", (err) ->
+    console.log err
+
+# Delete
+mailBox.destroy (err) ->
+    console.log err
 ```
 
 ## Build & tests

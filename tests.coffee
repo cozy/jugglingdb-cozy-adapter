@@ -18,12 +18,18 @@ Note = schema.define 'Note',
     author:
         type: String
 
+MailBox = schema.define 'MailBox',
+    name:
+        type: String
+
+
 describe "Existence", ->
 
     before (done) ->
-        client.post 'data/321/', value: "created value", \
-            (error, response, body) ->
-            done()
+        client.del "data/321/", (error, response, body) ->
+            client.post 'data/321/', value: "created value", \
+                (error, response, body) ->
+                done()
 
     after (done) ->
         client.del "data/321/", (error, response, body) ->
@@ -94,7 +100,7 @@ describe "Find", ->
 
 
 describe "Create", ->
-             
+
     before (done) ->
         client.post 'data/321/', {
             title: "my note"
@@ -123,7 +129,7 @@ describe "Create", ->
             should.exist @err
 
     describe "Create a new Document with a given id", ->
-        
+
         before ->
             @id = "987"
 
@@ -157,7 +163,7 @@ describe "Create", ->
 
 
     describe "Create a new Document without an id", ->
-                
+
         before ->
             @id = null
 
@@ -304,7 +310,7 @@ describe "Upsert attributes", ->
                 id: "654"
                 title: "my note"
                 content: "my content"
-            
+
             Note.updateOrCreate @data, (err) =>
                 @err = err
                 done()
@@ -312,7 +318,7 @@ describe "Upsert attributes", ->
         it "Then no error should be returned.", ->
             should.not.exist @err
 
-        it "Then the document with id 654 should exist in Database", (done) ->
+        it "And the document with id 654 should exist in Database", (done) ->
             Note.find @data.id, (err, updatedNote) =>
                 should.not.exist err
                 updatedNote.id.should.equal "654"
@@ -325,7 +331,7 @@ describe "Upsert attributes", ->
             @data =
                 id: "654"
                 title: "my new title"
-            
+
             Note.updateOrCreate @data, (err, note) =>
                 should.not.exist note
                 @err = err
@@ -334,7 +340,7 @@ describe "Upsert attributes", ->
         it "Then no data should be returned", ->
             should.not.exist @err
 
-        it "Then the document with id 654 should be updated", (done) ->
+        it "And the document with id 654 should be updated", (done) ->
             Note.find @data.id, (err, updatedNote) =>
                 should.not.exist err
                 updatedNote.id.should.equal "654"
@@ -416,7 +422,7 @@ deleteNoteFunction = (id) ->
         client.del "data/#{id}/", (err) -> callback()
 
 describe "Search features", ->
-    
+
     before (done) ->
         client.post 'data/321/', {
             title: "my note"
@@ -424,7 +430,7 @@ describe "Search features", ->
             docType: "Note"
             } , (error, response, body) ->
                 done()
-            
+
     after (done) ->
         funcs = []
         for id in ids
@@ -439,7 +445,7 @@ describe "Search features", ->
             client.del "data/index/clear-all/", (err, response) ->
                 done()
 
-        it "Given I index four notes", (done) ->
+        it "When given I index four notes", (done) ->
             async.series [
                 createNoteFunction "Note 01", "little stories begin"
                 createNoteFunction "Note 02", "great dragons are coming"
@@ -448,7 +454,7 @@ describe "Search features", ->
             ], ->
                 done()
 
-        it "When I send a request to search the notes containing dragons", (done) ->
+        it "And I send a request to search the notes containing dragons", (done) ->
             Note.search "dragons", (err, notes) =>
                 @notes = notes
                 done()
@@ -462,7 +468,7 @@ describe "Search features", ->
 ### Attachments ###
 
 describe "Attachments", ->
-    
+
     before (done) ->
         @note = new Note id: 321
         data =
@@ -483,7 +489,7 @@ describe "Attachments", ->
             @note.attachFile "./test.png", (err) =>
                 @err = err
                 done()
-            
+
         it "Then no error is returned", ->
             should.not.exist @err
 
@@ -493,7 +499,7 @@ describe "Attachments", ->
             stream = @note.getFile "test.png", -> done()
             stream.pipe fs.createWriteStream('./test-get.png')
 
-        it "I got the same file I attached before", ->
+        it "Then I got the same file I attached before", ->
             fileStats = fs.statSync('./test.png')
             resultStats = fs.statSync('./test-get.png')
             resultStats.size.should.equal fileStats.size
@@ -514,7 +520,8 @@ describe "Attachments", ->
                 done()
             stream.pipe fs.createWriteStream('./test-get.png')
 
-        it "I got an error", ->
+
+        it "Then I got an error", ->
             should.exist @err
 
 
@@ -603,7 +610,7 @@ describe "Requests", ->
                 @notes[0].id.should.equal ids[3]
 
     describe "Deletion of docs through requests", ->
-        
+
         describe "Delete a doc from a view : every_notes", (done) ->
 
             it "When I send a request to delete a doc from every_docs", (done) ->
@@ -696,4 +703,250 @@ describe "Requests", ->
 
         #it "Then I have three notes", ->
             #should.exist @notes
-            #@notes.length.should.equal 3
+            #@notes.length.should.equal 3###
+
+
+### Account ###
+
+describe "Account", ->
+
+    describe "Create an account", ->
+
+        before (done) ->
+            client.del 'data/102/', (err, res, body) =>
+                data =
+                    email: "user@CozyCloud.CC"
+                    timezone: "Europe/Paris"
+                    password: "user_pwd"
+                    docType: "User"
+                client.post 'data/102/', data, (err, res, body) =>
+                    password = password: "password"
+                    client.post "accounts/password/", password, (err, res, body) =>
+                        done()
+
+        describe "Create an account that doesn't exist with a field 'password'", ->
+
+            it "When I create the account", (done) ->
+                data =
+                    name: "test mailBox"
+                    id: "110"
+                MailBox.create data, (err, mailBox) =>
+                    data =
+                        password: "password"
+                        login: "log"
+                    mailBox.createAccount data, (err, account) =>
+                        should.not.exist err
+                        @account = account
+                        @mailBox = mailBox
+                        done()
+
+            it "Then id of the account should be save in the mailBox", ->
+                @account._id.should.be.equal @mailBox.account
+
+        describe "Try to create an account without field 'password' ", ->
+
+            after ->
+                @err = null
+
+            it "When I try to create the account", (done) ->
+                data =
+                    name: "test mailBox"
+                    id: "105"
+                MailBox.create data, (err, mailBox) =>
+                    data =
+                        login: "log"
+                    mailBox.createAccount data, (err, account) =>
+                        @err = err
+                        @account = account
+                        done()
+
+            it "Then error should be returned", ->
+                should.exist @err
+
+            it "And account should not exist", ->
+                should.not.exist @account
+
+        describe "Try to create an account that exists in database", ->
+
+            after ->
+                @err = null
+
+            it "When I try to create the account", (done) ->
+                data =
+                    login: "log"
+                    password: "password"
+                @mailBox.createAccount data, (err, account) =>
+                    @err = err
+                    @account = account
+                    done()
+
+            it "Then error should be returned", ->
+                should.exist @err
+
+
+    describe "Retrieve an account", ->
+
+        describe "Try to retrieve an account that doesn't exist", ->
+
+            it "When I try to retrieve the account", (done) ->
+                data =
+                    name: "test mailBox"
+                    id: "105"
+                MailBox.create data, (err, mailBox) =>
+                    mailBox.getAccount (err, account) =>
+                        @account = account
+                        @err = err
+                        done()
+
+            it "Then an error should be returned", ->
+                should.exist @err
+
+        describe "Retrieve an account that exists in the database", ->
+            it "When I retrieve the account", (done) ->
+                @mailBox.getAccount (err, account) =>
+                    @err = err
+                    @account = account
+                    done()
+
+            it "Then no error should be returned", ->
+                should.not.exist @err
+
+            it "And account should be returned", ->
+                should.exist @account
+                @account.password.should.be.equal "password"
+                @account.login.should.be.equal "log"
+                @account._id.should.be.equal @mailBox.account
+
+
+    describe "Update an account", ->
+
+        describe "Update an account that doesn't exist", ->
+
+            after ->
+                @err = null
+                @account = null
+
+            it "When I try to update the account", (done) ->
+                data =
+                    name: "test mailBox"
+                    id: "105"
+                MailBox.create data, (err, mailBox) =>
+                    data =
+                        password: "newPassword"
+                        login: "newLog"
+                    mailBox.updateAccount data, (err) =>
+                        @err = err
+                        done()
+
+            it "Then error should be returned", ->
+                should.exist @err
+
+        describe "Update an account that exists with 'password'", ->
+
+            it "When I update the account", (done)->
+                data =
+                    password: "newPassword"
+                    login: "newLog"
+                @mailBox.updateAccount data, (err) =>
+                    @err = err
+                    done()
+
+            it "Then no error should be returned", ->
+                should.not.exist @err
+
+            it "And the old account should be updated", (done) ->
+                @mailBox.getAccount (err, updatedAccount) =>
+                    should.not.exist err
+                    updatedAccount.password.should.be.equal "newPassword"
+                    updatedAccount.login.should.be.equal "newLog"
+                    updatedAccount._id.should.be.equal @mailBox.account
+                    done()
+
+        describe "Try to update an account without field 'password'", ->
+
+            it "When I try to update the account", (done) ->
+                data =
+                    login: "newLog"
+                @mailBox.updateAccount data, (err) =>
+                    @err = err
+                    done()
+
+            it "Then error should be returned", ->
+                should.exist @err
+
+
+    describe "Merge an account", ->
+
+        describe "Merge an account that doesn't exist", ->
+
+            after ->
+                @err = null
+
+            it "When I try to merge the account", (done) ->
+                data =
+                    name: "test mailBox"
+                    id: "105"
+                MailBox.create data, (err, mailBox) =>
+                    data =
+                        password: "newPassword"
+                        login: "newLog"
+                    mailBox.mergeAccount login: "newLogin", (err) =>
+                    @err = err
+                    done()
+
+            it "Then an error should be returned", ->
+                should.exist @err
+
+        describe "Merge an account that exists", ->
+
+            it "When I merge the account", (done) ->
+                @mailBox.mergeAccount login: "newLogin", (err) =>
+                    @err = err
+                    done()
+
+            it "Then no error should be returned", ->
+                should.not.exist @err
+
+            it "And the old account should be replaced", (done) ->
+                @mailBox.getAccount (err, updatedAccount) =>
+                    should.not.exist err
+                    should.exist updatedAccount
+                    updatedAccount.password.should.be.equal "newPassword"
+                    updatedAccount._id.should.be.equal @mailBox.account
+                    updatedAccount.login.should.be.equal "newLogin"
+                    done()
+
+
+    describe "Delete an account", ->
+
+        describe "Delete an account that doesn't exist", ->
+
+            it "When I try to delete the account", (done) ->
+                data =
+                    name: "test mailBox"
+                    id: "105"
+                MailBox.create data, (err, mailBox) =>
+                    data =
+                        password: "newPassword"
+                        login: "newLog"
+                    mailBox.destroyAccount (err) =>
+                        @err = err
+                        done()
+
+            it "Then an error should be returned", ->
+                should.exist @err
+
+        describe "Delete an account that exists", ->
+
+            it "When I delete the account", (done) ->
+                @mailBox.destroyAccount (err) =>
+                    @err = err
+                    done()
+
+            it "Then no error is returned", ->
+                should.not.exist @err
+
+            it "And account shouldn't exist in Database", (done) ->
+                @mailBox.getAccount (err, account) =>
+                    err.should.exist
+                    done()
