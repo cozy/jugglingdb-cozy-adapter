@@ -737,7 +737,7 @@ describe "Account", ->
                     mailBox.createAccount data, (err, account) =>
                         should.not.exist err
                         @account = account
-                        @mailBox = mailBox_
+                        @mailBox = mailBox
                         done()
 
             it "Then id of the account should be save in the mailBox", ->
