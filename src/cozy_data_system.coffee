@@ -74,7 +74,7 @@ class exports.CozyDataSystem
     # Find a doc with its ID. Returns it if it is found else it
     # returns null
     find: (model, id, callback) ->
-         @client.get "data/#{id}/", (error, response, body) =>
+        @client.get "data/#{id}/", (error, response, body) =>
             if error
                 callback error
             else if response.statusCode is 404
