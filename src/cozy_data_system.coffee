@@ -380,7 +380,6 @@ class exports.CozyDataSystem
                     data =
                         login: data.login
                         password: data.password
-                    console.log data
                     @client.post 'account/', data, (err, res, body) =>
                         if err
                             callback err
