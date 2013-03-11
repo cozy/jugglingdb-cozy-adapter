@@ -74,7 +74,7 @@ class exports.CozyDataSystem
     # Find a doc with its ID. Returns it if it is found else it
     # returns null
     find: (model, id, callback) ->
-         @client.get "data/#{id}/", (error, response, body) =>
+        @client.get "data/#{id}/", (error, response, body) =>
             if error
                 callback error
             else if response.statusCode is 404
@@ -135,7 +135,8 @@ class exports.CozyDataSystem
         @client.put "data/upsert/#{data.id}/", data, (error, response, body) =>
             if error
                 callback error
-            else if response.statusCode isnt 200 and response.statusCode isnt 201
+            else if response.statusCode isnt 200 and
+            response.statusCode isnt 201
                 callback new Error("Server error occured.")
             else if response.statusCode is 200
                 callback null
@@ -378,6 +379,9 @@ class exports.CozyDataSystem
                 if model.account?
                     callback new Error("The model has already an account")
                 else
+                    data =
+                        login: data.login
+                        password: data.password
                     @client.post 'account/', data, (err, res, body) =>
                         if err
                             callback err
@@ -387,9 +391,10 @@ class exports.CozyDataSystem
                         else if res.statusCode isnt 201
                             callback new Error("Server error occured.")
                         else
-                            @updateAttributes model, model.id, account: body._id, (err) =>
+                            data = account: body._id
+                            @updateAttributes model, model.id, data, (err) =>
                                 if err
-                                   err
+                                    callback err
                                 else
                                     model.account = body._id
                                     data._id = body._id
@@ -407,6 +412,9 @@ class exports.CozyDataSystem
                 if not model.account?
                     callback new Error("The model doesn't have an account")
                 else
+                    data =
+                        login: data.login
+                        password: data.password
                     @client.put "account/#{model.account}/", data,
                     (err, res, body) =>
                         if err
@@ -464,9 +472,10 @@ class exports.CozyDataSystem
                         else if res.statusCode isnt 204
                             callback new Error("Server error occured.")
                         else
-                            @updateAttributes model, model.id, account: null, (err) =>
+                            data = account: null
+                            @updateAttributes model, model.id, data, (err) =>
                                 if err
-                                   callback err
+                                    callback err
                                 else
                                     model.account = null
                                     callback null

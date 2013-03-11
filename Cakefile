@@ -27,3 +27,9 @@ task "build", "", ->
       console.log "Compilation succeeds."
       
     console.log stdout
+
+task "lint", "Run coffeelint on backend files", ->
+    process.env.TZ = "Europe/Paris"
+    command = "coffeelint -f coffeelint.json -r src/"
+    exec command, (err, stdout, stderr) ->
+        console.log stdout
