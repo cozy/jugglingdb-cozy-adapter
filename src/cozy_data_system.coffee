@@ -360,6 +360,8 @@ class exports.CozyDataSystem
                             callback err
                         else if res.statusCode is 404
                             callback new Error("The account desn't exist")
+                        else if res.statusCode is 402
+                            callback new Error("Data are corrupted")
                         else if body.docType isnt "Account"
                             callback new Error("The document isn't an account")
                         else
