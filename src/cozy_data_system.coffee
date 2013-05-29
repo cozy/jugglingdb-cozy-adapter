@@ -16,7 +16,7 @@ class exports.CozyDataSystem
         @client = new Client schema.settings.url
         if process.env.NODE_ENV is "production"
             @username = process.env.name
-            @password = fs.readFileSync "/etc/cozy/tokens/#{@username}.token"
+            @password = process.env.token
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
