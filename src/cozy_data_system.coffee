@@ -13,10 +13,15 @@ class exports.CozyDataSystem
     constructor: (@schema) ->
         @_models = {}
         @client = new Client schema.settings.url
+        if schema.settings.password? and schema.settings.username?
+            @username = schema.settings.username
+            @password = schema.settings.password
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
         @_models[descr.model.modelName] = descr
+        if @username? and @password?
+            @client.setBasicAuth(@username, @password)
 
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
