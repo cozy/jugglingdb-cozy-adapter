@@ -1,4 +1,5 @@
 Client = require("request-json").JsonClient
+fs = require 'fs'
 
 exports.initialize = (@schema, callback) ->
     unless schema.settings.url?
@@ -13,9 +14,9 @@ class exports.CozyDataSystem
     constructor: (@schema) ->
         @_models = {}
         @client = new Client schema.settings.url
-        if schema.settings.password? and schema.settings.username?
-            @username = schema.settings.username
-            @password = schema.settings.password
+        if process.env.NODE_ENV is "production"
+            @username = process.env.name
+            @password = fs.readFileSync "/etc/cozy/tokens/#{@username}.token"
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
