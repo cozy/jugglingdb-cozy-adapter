@@ -1,4 +1,5 @@
 Client = require("request-json").JsonClient
+fs = require 'fs'
 
 exports.initialize = (@schema, callback) ->
     unless schema.settings.url?
@@ -13,10 +14,15 @@ class exports.CozyDataSystem
     constructor: (@schema) ->
         @_models = {}
         @client = new Client schema.settings.url
+        if process.env.NODE_ENV is "production"
+            @username = process.env.name
+            @password = process.env.token
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
         @_models[descr.model.modelName] = descr
+        if @username? and @password?
+            @client.setBasicAuth(@username, @password)
 
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
