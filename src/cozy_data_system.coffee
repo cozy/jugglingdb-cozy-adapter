@@ -15,8 +15,8 @@ class exports.CozyDataSystem
         @_models = {}
         @client = new Client schema.settings.url
         if process.env.NODE_ENV is "production"
-            @username = process.env.name
-            @password = process.env.token
+            @username = process.env.NAME
+            @password = process.env.TOKEN
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
