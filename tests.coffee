@@ -8,7 +8,13 @@ Schema = require('jugglingdb').Schema
 client = new Client "http://localhost:9101/"
 schema = new Schema 'memory'
 schema.settings = {}
+
+process.env.NAME = "test"
+process.env.TOKEN = "token"
+
 require("./src/cozy_data_system").initialize(schema)
+
+client.setBasicAuth "test", "token"
 
 Note = schema.define 'Note',
     title:
@@ -22,13 +28,40 @@ MailBox = schema.define 'MailBox',
     name:
         type: String
 
+describe "Create application with all permissions", ->
+
+    it "When I create application", (done) ->
+        data =
+            name: "test"
+            slug: "test"
+            docType: "Application"
+            password: "token"
+            permissions:
+                "All":
+                    description: "..."
+        client.setBasicAuth "home", "token"
+        client.post 'data/', data, (error, response, body) =>
+            @response = response
+            @error = error
+            done()
+
+    it "Then no error should be returned", ->
+        should.not.exist @error
+
+    it "And 201 should be return as response code", ->
+        @response.statusCode.should.equal 201
+
+
 
 describe "Existence", ->
 
     before (done) ->
         client.del "data/321/", (error, response, body) ->
-            client.post 'data/321/', value: "created value", \
-                (error, response, body) ->
+            client.setBasicAuth "test", "token"
+            data =
+                value: "created value"
+                docType: "Note"
+            client.post 'data/321/', data, (error, response, body) ->
                 done()
 
     after (done) ->
@@ -703,7 +736,7 @@ describe "Requests", ->
 
         #it "Then I have three notes", ->
             #should.exist @notes
-            #@notes.length.should.equal 3###
+            #@notes.length.should.equal 3
 
 
 ### Account ###
@@ -721,6 +754,7 @@ describe "Account", ->
                     docType: "User"
                 client.post 'data/102/', data, (err, res, body) =>
                     password = password: "password"
+                    client.setBasicAuth "proxy", "token"
                     client.post "accounts/password/", password, (err, res, body) =>
                         done()
 
