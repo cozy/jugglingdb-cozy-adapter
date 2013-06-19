@@ -153,7 +153,8 @@ describe "Create", ->
             @note = null
 
         it "When create a document with id 321", (done) ->
-            Note.create { id: "321", "content":"created value"}, (err, note) =>
+            Note.create { id: "321", "content":"created value"}, \
+                    (err, note) =>
                 @err = err
                 @note = note
                 done()
@@ -207,7 +208,8 @@ describe "Create", ->
                 done()
 
         it "When I create a document without an id", (done) ->
-            Note.create { "title": "cool note", "content": "new note" }, (err, note) =>
+            Note.create { "title": "cool note", "content": "new note" }, \
+                    (err, note) =>
                 @err = err if err
                 @note = note
                 done()
@@ -487,7 +489,8 @@ describe "Search features", ->
             ], ->
                 done()
 
-        it "And I send a request to search the notes containing dragons", (done) ->
+        it "And I send a request to search the notes containing dragons", \
+                (done) ->
             Note.search "dragons", (err, notes) =>
                 @notes = notes
                 done()
@@ -632,7 +635,8 @@ describe "Requests", ->
 
         describe "Access to a doc from a view : every_notes", (done) ->
 
-            it "When I send a request to access doc 3 from every_docs", (done) ->
+            it "When I send a request to access doc 3 from every_docs", \
+                    (done) ->
                 delete @err
                 Note.request "every_notes", {key: ids[3]}, (err, notes) =>
                     @notes = notes
@@ -646,7 +650,8 @@ describe "Requests", ->
 
         describe "Delete a doc from a view : every_notes", (done) ->
 
-            it "When I send a request to delete a doc from every_docs", (done) ->
+            it "When I send a request to delete a doc from every_docs", \
+                    (done) ->
                 Note.requestDestroy "every_notes", {key: ids[3]}, (err) ->
                     should.not.exist err
                     done()
@@ -674,7 +679,8 @@ describe "Requests", ->
                     should.not.exist err
                     done()
 
-            it "And I send a request to grab all docs from every_docs", (done) ->
+            it "And I send a request to grab all docs from every_docs", \
+                    (done) ->
                 delete @err
                 delete @notes
                 Note.request "every_notes", (err, notes) =>
@@ -755,10 +761,11 @@ describe "Account", ->
                 client.post 'data/102/', data, (err, res, body) =>
                     password = password: "password"
                     client.setBasicAuth "proxy", "token"
-                    client.post "accounts/password/", password, (err, res, body) =>
+                    client.post "accounts/password/", password, \
+                            (err, res, body) =>
                         done()
 
-        describe "Create an account that doesn't exist with a field 'password'", ->
+        describe "Create an account with a field 'password'", ->
 
             it "When I create the account", (done) ->
                 data =
