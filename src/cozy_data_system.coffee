@@ -6,7 +6,7 @@ exports.initialize = (@schema, callback) ->
         schema.settings.url = "http://localhost:9101/"
 
     schema.adapter = new exports.CozyDataSystem schema
-    process.nextTick(callback)
+    process.nextTick callback
 
 
 class exports.CozyDataSystem
@@ -14,8 +14,8 @@ class exports.CozyDataSystem
     constructor: (@schema) ->
         @_models = {}
         @client = new Client schema.settings.url
-        if process.env.NODE_ENV is "production" or
-                process.env.NODE_ENV is "test"
+        if process.env.NODE_ENV is "production"
+        or process.env.NODE_ENV is "test"
             @username = process.env.NAME
             @password = process.env.TOKEN
 
