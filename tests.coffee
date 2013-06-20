@@ -1,5 +1,5 @@
 fs = require("fs")
-should = require('chai').Should()
+should = require('chai').should()
 async = require('async')
 
 Client = require("request-json").JsonClient
