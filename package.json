@@ -35,7 +35,8 @@
     "async": "*"
   },
   "scripts": {
-    "prepublish": "coffee --compile --output lib/ src/"
+    "prepublish": "coffee --compile --output lib/ src/",
+    "test": "cake tests"
   },
   "repository": {
     "type": "git",
