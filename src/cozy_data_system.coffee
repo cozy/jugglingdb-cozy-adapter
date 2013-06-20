@@ -18,6 +18,9 @@ class exports.CozyDataSystem
            process.env.NODE_ENV is "test"
             @username = process.env.NAME
             @password = process.env.TOKEN
+        else
+            @username =  Math.random().toString(36)
+            @password = "token"
 
     # Register Model to adapter and define extra methods
     define: (descr) ->
