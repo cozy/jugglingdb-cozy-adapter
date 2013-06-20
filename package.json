@@ -31,6 +31,7 @@
   "devDependencies": {
     "coffee-script": "*",
     "jugglingdb": "0.1.13",
+    "mocha": "1.9.0",
     "chai": "*",
     "async": "*"
   },
