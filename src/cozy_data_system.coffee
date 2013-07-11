@@ -486,3 +486,12 @@ class exports.CozyDataSystem
                                 else
                                     model.account = null
                                     callback null
+
+
+exports.commonRequests =
+    checkError: (err) ->
+        console.log "An error occured while creating request" if err
+
+    all: -> emit doc._id, doc
+    allType: -> emit doc.type, doc
+    allSlug: -> emit doc.slug, doc
