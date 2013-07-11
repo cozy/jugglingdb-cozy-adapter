@@ -26,7 +26,7 @@
   },
   "main": "./lib/cozy_data_system.js",
   "dependencies": {
-    "request-json": "0.3.3"
+    "request-json": "0.3.7"
   },
   "devDependencies": {
     "coffee-script": "*",
