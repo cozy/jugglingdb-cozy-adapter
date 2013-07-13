@@ -4,6 +4,12 @@
 [JugglingDB](https://github.com/1602/jugglingdb "JugglingDB") required by
 cozy applications to use the Cozy Data System.
 
+
+[![Build
+Status](https://travis-ci.org/mycozycloud/jugglingdb-cozy-adapter.png?branch=master)](https://travis-ci.org/mycozycloud/jugglingdb-cozy-adapter)
+
+
+
 ## Setup for RailwayJS
 
 First add it to your project dependencies (package.json file), or install it
