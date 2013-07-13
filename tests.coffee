@@ -517,7 +517,7 @@ describe "Search features", ->
                         200
                     else 204
                 @indexer.listen 9102
-                done()
+                setTimeout done, 500
 
 
         it "And I send a request to search the notes containing dragons", \
