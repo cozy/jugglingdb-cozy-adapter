@@ -26,16 +26,19 @@
   },
   "main": "./lib/cozy_data_system.js",
   "dependencies": {
-    "request-json": "0.3.3"
+    "request-json": "0.3.7"
   },
   "devDependencies": {
     "coffee-script": "*",
     "jugglingdb": "0.1.13",
-    "chai": "*",
+    "mocha": "1.11.0",
+    "chai": "1.7.0",
+    "should": "*",
     "async": "*"
   },
   "scripts": {
-    "prepublish": "coffee --compile --output lib/ src/"
+    "prepublish": "coffee --compile --output lib/ src/",
+    "test": "cake tests"
   },
   "repository": {
     "type": "git",
