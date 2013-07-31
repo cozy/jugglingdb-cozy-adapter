@@ -5,6 +5,7 @@ http = require 'http'
 
 Client = require("request-json").JsonClient
 Schema = require('jugglingdb').Schema
+CozyAdapter = require('./src/cozy_data_system')
 
 client = new Client "http://localhost:9101/"
 schema = new Schema 'memory'
@@ -555,7 +556,7 @@ describe "Attachments", ->
     describe "Add an attachment", ->
 
         it "When I add an attachment", (done) ->
-            @note.attachFile "./test.png", (err) =>
+            @note.attachFile "./test.png", (err) ->
                 @err = err
                 done()
 
@@ -1024,3 +1025,49 @@ describe "Account", ->
                 @mailBox.getAccount (err, account) =>
                     err.should.exist
                     done()
+
+    describe "Send mail", ->
+
+        describe "Send common mail", ->
+
+            it "When I send the mail", (done) ->
+                data =
+                    to: "test@cozycloud.cc" 
+                    from: "Cozy-test"
+                    subject: "Test jugglingdb"
+                    content: "Content of mail"
+                CozyAdapter.sendMail data, (err, response) =>
+                    @err = err
+                    done()
+
+            it "Then no error is returned", ->
+                should.not.exist @err
+
+        describe "Send mail to user", ->
+
+            it "When I send the mail", (done) ->
+                data =
+                    from: "Cozy-test"
+                    subject: "Test jugglingdb"
+                    content: "Content of mail"
+                CozyAdapter.sendMailToUser data, (err, response) =>
+                    @err = err
+                    done()
+
+            it "Then no error is returned", ->
+                should.not.exist @err
+
+        describe "Send mail from user", ->
+
+            it "When I send the mail", (done) ->
+                data =
+                    to: "test@cozycloud.cc"
+                    subject: "Test jugglingdb"
+                    content: "Content of mail"
+                CozyAdapter.sendMailFromUser data, (err, response) =>
+                    @err = err
+                    done()
+
+            it "Then no error is returned", ->
+                should.not.exist @err
+
