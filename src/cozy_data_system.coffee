@@ -495,10 +495,12 @@ exports.sendMail = (data, callback) ->
     @client = new Client "http://localhost:9101/"
     path = "mail/"
     @client.post path, data, (error, response, body) =>
-        if error
-            callback error
-        else if response.statusCode isnt 200
-            callback new Error("Server error occured.")
+        if body.error
+            callback body.error
+        else if response.statusCode is 400
+            callback new Error 'Body has not all necessary attributes'        
+        else if response.statusCode is 500
+            callback new Error "Server error occured."
         else
             callback()    
 
@@ -507,10 +509,12 @@ exports.sendMailToUser = (data, callback) ->
     @client = new Client "http://localhost:9101/"
     path = "mail/to-user/"
     @client.post path, data, (error, response, body) =>
-        if error
-            callback error
-        else if response.statusCode isnt 200
-            callback new Error("Server error occured.")
+        if body.error
+            callback body.error
+        else if response.statusCode is 400
+            callback new Error 'Body has not all necessary attributes'        
+        else if response.statusCode is 500
+            callback new Error "Server error occured."
         else
             callback()    
 
@@ -519,12 +523,14 @@ exports.sendMailFromUser = (data, callback) ->
     @client = new Client "http://localhost:9101/"
     path = "mail/from-user/"
     @client.post path, data, (error, response, body) =>
-        if error
-            callback error
-        else if response.statusCode isnt 200
-            callback new Error("Server error occured.")
+        if body.error?
+            callback body.error
+        else if response.statusCode is 400
+            callback new Error 'Body has not all necessary attributes'        
+        else if response.statusCode is 500
+            callback new Error "Server error occured."
         else
-            callback()
+            callback()   
 
 exports.commonRequests =
     checkError: (err) ->
