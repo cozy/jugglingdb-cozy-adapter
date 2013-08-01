@@ -26,11 +26,11 @@
   },
   "main": "./lib/cozy_data_system.js",
   "dependencies": {
-    "request-json": "0.3.7"
+    "request-json": "0.3.8"
   },
   "devDependencies": {
     "coffee-script": "*",
-    "jugglingdb": "0.1.13",
+    "jugglingdb": "0.2.0",
     "mocha": "1.11.0",
     "chai": "1.7.0",
     "should": "*",
