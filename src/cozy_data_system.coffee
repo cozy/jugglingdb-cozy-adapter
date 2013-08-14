@@ -223,6 +223,7 @@ class exports.CozyDataSystem
         urlPath = "data/#{model.id}/attachments/#{path}"
         @client.get urlPath, (error, response, body) =>
             @checkError error, response, body, 200, callback
+        , false
 
     # Save to disk given file for given model from data system
     saveFile: (model, path, filePath, callback) ->
@@ -500,7 +501,7 @@ exports.sendMail = (data, callback) ->
         else if response.statusCode isnt 200
             callback new Error("Server error occured.")
         else
-            callback()    
+            callback()
 
 # Send mail to user
 exports.sendMailToUser = (data, callback) ->
@@ -512,7 +513,7 @@ exports.sendMailToUser = (data, callback) ->
         else if response.statusCode isnt 200
             callback new Error("Server error occured.")
         else
-            callback()    
+            callback()
 
 # Send mail from user
 exports.sendMailFromUser = (data, callback) ->
