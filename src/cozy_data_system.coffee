@@ -22,6 +22,7 @@ class exports.CozyDataSystem
             @username =  Math.random().toString(36)
             @password = "token"
 
+
     # Register Model to adapter and define extra methods
     define: (descr) ->
         @_models[descr.model.modelName] = descr
@@ -54,8 +55,6 @@ class exports.CozyDataSystem
             @_adapter().attachFile  @, path, data, callback
         descr.model::getFile = (path, callback) ->
             @_adapter().getFile  @, path, callback
-        descr.model::saveFile = (path, filePath, callback) ->
-            @_adapter().saveFile  @, path, filePath, callback
         descr.model::removeFile = (path, callback) ->
             @_adapter().removeFile  @, path, callback
         descr.model::createAccount = (data, callback) ->
@@ -94,6 +93,7 @@ class exports.CozyDataSystem
             else
                 callback null, new @_models[model].model(body)
 
+
     # Create a new document from given data. If no ID is set a new one
     # is automatically generated.
     create: (model, data, callback) ->
@@ -113,6 +113,7 @@ class exports.CozyDataSystem
             else
                 callback null, body._id
 
+
     # Save all model attributes to DB.
     save: (model, data, callback) ->
         data.docType = model
@@ -126,6 +127,7 @@ class exports.CozyDataSystem
             else
                 callback()
 
+
     # Save only given attributes to DB.
     updateAttributes: (model, id, data, callback) ->
         @client.put "data/merge/#{id}/", data, (error, response, body) =>
@@ -137,6 +139,7 @@ class exports.CozyDataSystem
                 callback new Error("Server error occured.")
             else
                 callback()
+
 
     # Save only given attributes to DB. If model does not exist it is created.
     # It requires an ID.
@@ -170,6 +173,7 @@ class exports.CozyDataSystem
             else
                 callback()
 
+
     # index given fields of model instance inside cozy data indexer.
     # it requires that note is saved before indexing, else it won't work
     # properly (it took data from db).
@@ -186,6 +190,7 @@ class exports.CozyDataSystem
                 callback new Error(body)
             else
                 callback null
+
 
     # Retrieve note through index. Give a query then grab results.
     # ex: Note.search "dragon", (err, docs) ->
@@ -208,6 +213,7 @@ class exports.CozyDataSystem
                     doc.id = doc._id if doc._id?
                 callback null, results
 
+
     # Save a file into data system and attach it to current model.
     attachFile: (model, path, data, callback) ->
         if typeof(data) is "function"
@@ -218,6 +224,7 @@ class exports.CozyDataSystem
         @client.sendFile urlPath, path, data, (error, response, body) =>
             @checkError error, response, body, 201, callback
 
+
     # Get file stream of given file for given model from data system
     getFile: (model, path, callback) ->
         urlPath = "data/#{model.id}/attachments/#{path}"
@@ -225,17 +232,20 @@ class exports.CozyDataSystem
             @checkError error, response, body, 200, callback
         , false
 
+
     # Save to disk given file for given model from data system
     saveFile: (model, path, filePath, callback) ->
         urlPath = "data/#{model.id}/attachments/#{path}"
         @client.saveFile urlPath, filePath, (error, response, body) =>
             @checkError error, response, body, 200, callback
 
+
     # Remove from db given file of given model.
     removeFile: (model, path, callback) ->
         urlPath = "data/#{model.id}/attachments/#{path}"
         @client.del urlPath, (error, response, body) =>
             @checkError error, response, body, 204, callback
+
 
     # Check if an error occurred. If any, it returns an a proper error.
     checkError: (error, response, body, code, callback) ->
@@ -245,6 +255,7 @@ class exports.CozyDataSystem
             callback new Error(body)
         else
             callback null
+
 
     # Create a new couchdb view which is typed with current model type.
     defineRequest: (model, name, request, callback) ->
@@ -269,6 +280,7 @@ class exports.CozyDataSystem
         @client.put path, view, (error, response, body) =>
             @checkError error, response, body, 200, callback
 
+
     # Return defined request result.
     request: (model, name, params, callback) ->
         callback = params if typeof(params) is "function"
@@ -285,6 +297,7 @@ class exports.CozyDataSystem
                     doc.value.id = doc.value._id
                     results.push new @_models[model].model(doc.value)
                 callback null, results
+
 
     # Return defined request result in the format given by data system
     # (couchDB style).
@@ -307,6 +320,7 @@ class exports.CozyDataSystem
         @client.del path, (error, response, body) =>
             @checkError error, response, body, 204, callback
 
+
     # Delete all results that should be returned by the request.
     requestDestroy: (model, name, params, callback) ->
         callback = params if typeof(params) is "function"
@@ -314,6 +328,7 @@ class exports.CozyDataSystem
         path = "request/#{model.toLowerCase()}/#{name.toLowerCase()}/destroy/"
         @client.put path, params, (error, response, body) =>
             @checkError error, response, body, 204, callback
+
 
     # Shortcut for "all" view, a view containing all objects of this type.
     # This method is useful because Juggling make some usage of it for joins.
@@ -325,6 +340,7 @@ class exports.CozyDataSystem
             delete params.view
 
         @request model, view, params, callback
+
 
     # Shortcut for destroying all documents from "all" view,
     # This requires that view all exist for this object.
@@ -499,7 +515,7 @@ exports.sendMail = (data, callback) ->
         if body.error
             callback body.error
         else if response.statusCode is 400
-            callback new Error 'Body has not all necessary attributes'        
+            callback new Error 'Body has not all necessary attributes'
         else if response.statusCode is 500
             callback new Error "Server error occured."
         else
@@ -513,7 +529,7 @@ exports.sendMailToUser = (data, callback) ->
         if body.error
             callback body.error
         else if response.statusCode is 400
-            callback new Error 'Body has not all necessary attributes'        
+            callback new Error 'Body has not all necessary attributes'
         else if response.statusCode is 500
             callback new Error "Server error occured."
         else
@@ -527,11 +543,11 @@ exports.sendMailFromUser = (data, callback) ->
         if body.error?
             callback body.error
         else if response.statusCode is 400
-            callback new Error 'Body has not all necessary attributes'        
+            callback new Error 'Body has not all necessary attributes'
         else if response.statusCode is 500
             callback new Error "Server error occured."
         else
-            callback()   
+            callback()
 
 exports.commonRequests =
     checkError: (err) ->
