@@ -55,6 +55,8 @@ class exports.CozyDataSystem
             @_adapter().attachFile  @, path, data, callback
         descr.model::getFile = (path, callback) ->
             @_adapter().getFile  @, path, callback
+        descr.model::saveFile = (path, filePath, callback) ->
+-            @_adapter().saveFile  @, path, filePath, callback
         descr.model::removeFile = (path, callback) ->
             @_adapter().removeFile  @, path, callback
         descr.model::createAccount = (data, callback) ->
