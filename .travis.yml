@@ -7,6 +7,7 @@ env:
     global:
         - NODE_ENV=test
 before_install:
+    - npm install coffee-script -g
     - git clone git://github.com/mycozycloud/cozy-data-system.git
     - cd cozy-data-system 
     - npm install
@@ -15,4 +16,5 @@ before_install:
     - ps aux | grep coffee
     - sleep 3
     - curl http://localhost:9101/
+    - npm install coffee-script -g
     - cd ..
