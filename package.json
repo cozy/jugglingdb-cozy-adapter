@@ -34,7 +34,8 @@
     "mocha": "1.11.0",
     "chai": "1.7.0",
     "should": "*",
-    "async": "*"
+    "async": "*", 
+    "coffee-script": "latest" 
   },
   "scripts": {
     "prepublish": "coffee --compile --output lib/ src/",
