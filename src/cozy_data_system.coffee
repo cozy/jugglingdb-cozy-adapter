@@ -185,13 +185,14 @@ class exports.CozyDataSystem
     index: (model, fields, callback) ->
         data =
             fields: fields
-        @client.post "data/index/#{model.id}", data, (error, response, body) =>
+        @client.post "data/index/#{model.id}", data, ((error, response, body) =>
             if error
                 callback error
             else if response.statusCode isnt 200
                 callback new Error(body)
             else
                 callback null
+            ), false
 
 
     # Retrieve note through index. Give a query then grab results.
@@ -445,7 +446,7 @@ class exports.CozyDataSystem
                         login: data.login
                         password: data.password
                     @client.put "account/#{model.account}/", data,
-                    (err, res, body) =>
+                    ((err, res, body) =>
                         if err
                             callback err
                         else if res.statusCode is 404
@@ -457,6 +458,7 @@ class exports.CozyDataSystem
                             callback new Error("Server error occured.")
                         else
                             callback()
+                    ), false
 
 
     # Update only given attributes to DB.
@@ -493,7 +495,8 @@ class exports.CozyDataSystem
                 if not model.account?
                     callback new Error("The model doesn't have an account")
                 else
-                    @client.del "account/#{model.account}/", (err, res, body) =>
+                    url = "account/#{model.account}/"
+                    @client.del url, ((err, res, body) =>
                         if err
                             callback err
                         else if res.statusCode is 404
@@ -508,6 +511,7 @@ class exports.CozyDataSystem
                                 else
                                     model.account = null
                                     callback null
+                        ), false
 
 # Send mail
 exports.sendMail = (data, callback) ->
