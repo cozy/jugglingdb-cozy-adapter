@@ -7,14 +7,15 @@ env:
     global:
         - NODE_ENV=test
 before_install:
-    - npm install coffee-script -g
     - git clone git://github.com/mycozycloud/cozy-data-system.git
-    - cd cozy-data-system 
-    - npm install
+    - cd cozy-data-system
+    - npm install forever coffee-script -g
+    - npm install # data-system
     - pwd
-    - start-stop-daemon --start --chdir /home/travis/build/mycozycloud/jugglingdb-cozy-adapter/cozy-data-system/ --exec /home/travis/build/mycozycloud/jugglingdb-cozy-adapter/cozy-data-system/server.coffee -b
-    - ps aux | grep coffee
-    - sleep 3
+    - forever start -o forever-ds.log server.js
+    - ps aux | grep server.js
+    - sleep 5
+    - cat forever-ds.log
+    - sudo netstat -plunt
     - curl http://localhost:9101/
-    - npm install coffee-script -g
     - cd ..
