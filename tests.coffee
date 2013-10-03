@@ -104,7 +104,7 @@ describe "Find", ->
             content: "my content"
             docType: "Note"
             , (error, response, body) ->
-            done()
+                done()
 
     after (done) ->
         client.del "data/321/", (error, response, body) ->
@@ -142,7 +142,7 @@ describe "Create", ->
             content: "my content"
             docType: "Note"
             } , (error, response, body) ->
-            done()
+                done()
 
     after (done) ->
         client.del "data/321/", (error, response, body) ->
@@ -1032,7 +1032,7 @@ describe "Account", ->
 
             it "When I send the mail", (done) ->
                 data =
-                    to: "test@cozycloud.cc" 
+                    to: "test@cozycloud.cc"
                     from: "Cozy-test <test@cozycloud.cc>"
                     subject: "Test jugglingdb"
                     content: "Content of mail"
