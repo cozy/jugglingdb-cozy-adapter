@@ -731,13 +731,8 @@ describe "Requests", ->
                 should.not.exist err
                 done()
 
-        it "And I send a request to access view every_notes", (done) ->
-            delete @err
-            Note.request "every_notes", (err, note) =>
-                @err = err
-                done()
-
-        checkError()
+        # Following DS commit 8e43fc66
+        # the request will be kept in case another app use it
 
 #### Relations ###
 
