@@ -10,7 +10,7 @@ Status](https://travis-ci.org/mycozycloud/jugglingdb-cozy-adapter.png?branch=mas
 
 
 
-## Setup for RailwayJS
+## Setup for Compound
 
 First add it to your project dependencies (package.json file), or install it
 directly:

@@ -104,7 +104,7 @@ describe "Find", ->
             content: "my content"
             docType: "Note"
             , (error, response, body) ->
-            done()
+                done()
 
     after (done) ->
         client.del "data/321/", (error, response, body) ->
@@ -142,7 +142,7 @@ describe "Create", ->
             content: "my content"
             docType: "Note"
             } , (error, response, body) ->
-            done()
+                done()
 
     after (done) ->
         client.del "data/321/", (error, response, body) ->
@@ -731,13 +731,8 @@ describe "Requests", ->
                 should.not.exist err
                 done()
 
-        it "And I send a request to access view every_notes", (done) ->
-            delete @err
-            Note.request "every_notes", (err, note) =>
-                @err = err
-                done()
-
-        checkError()
+        # Following DS commit 8e43fc66
+        # the request will be kept in case another app use it
 
 #### Relations ###
 
@@ -1032,7 +1027,7 @@ describe "Account", ->
 
             it "When I send the mail", (done) ->
                 data =
-                    to: "test@cozycloud.cc" 
+                    to: "test@cozycloud.cc"
                     from: "Cozy-test <test@cozycloud.cc>"
                     subject: "Test jugglingdb"
                     content: "Content of mail"
