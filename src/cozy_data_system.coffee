@@ -58,7 +58,15 @@ class exports.CozyDataSystem
         descr.model::saveFile = (path, filePath, callback) ->
             @_adapter().saveFile  @, path, filePath, callback
         descr.model::removeFile = (path, callback) ->
-            @_adapter().removeFile  @, path, callback
+            @_adapter().removeFile  @, path, callback        
+        descr.model::attachBinary = (path, data, callback) ->
+            @_adapter().attachBinary  @, path, data, callback
+        descr.model::getBinary = (path, callback) ->
+            @_adapter().getBinary  @, path, callback
+        descr.model::saveBinary = (path, filePath, callback) ->
+            @_adapter().saveBinary  @, path, filePath, callback
+        descr.model::removeBinary = (path, callback) ->
+            @_adapter().removeBinary  @, path, callback
         descr.model::createAccount = (data, callback) ->
             @_adapter().createAccount @, data, callback
         descr.model::getAccount = (callback) ->
@@ -246,6 +254,39 @@ class exports.CozyDataSystem
     # Remove from db given file of given model.
     removeFile: (model, path, callback) ->
         urlPath = "data/#{model.id}/attachments/#{path}"
+        @client.del urlPath, (error, response, body) =>
+            @checkError error, response, body, 204, callback
+
+
+    # Save a file into data system and attach it to current model.
+    attachBinary: (model, path, data, callback) ->
+        if typeof(data) is "function"
+            callback = data
+            data = null
+
+        urlPath = "data/#{model.id}/binaries/"
+        @client.sendFile urlPath, path, data, (error, response, body) =>
+            @checkError error, response, body, 201, callback
+
+
+    # Get file stream of given file for given model from data system
+    getBinary: (model, path, callback) ->
+        urlPath = "data/#{model.id}/binaries/#{path}"
+        @client.get urlPath, (error, response, body) =>
+            @checkError error, response, body, 200, callback
+        , false
+
+
+    # Save to disk given file for given model from data system
+    saveBinary: (model, path, filePath, callback) ->
+        urlPath = "data/#{model.id}/binaries/#{path}"
+        @client.saveFile urlPath, filePath, (error, response, body) =>
+            @checkError error, response, body, 200, callback
+
+
+    # Remove from db given file of given model.
+    removeBinary: (model, path, callback) ->
+        urlPath = "data/#{model.id}/binaries/#{path}"
         @client.del urlPath, (error, response, body) =>
             @checkError error, response, body, 204, callback
 
