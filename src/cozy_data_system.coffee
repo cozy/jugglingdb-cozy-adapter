@@ -554,47 +554,60 @@ class exports.CozyDataSystem
                                     callback null
                         ), false
 
+getClient = (callback) ->
+    client = new Client "http://localhost:9101/"
+    if process.env.NODE_ENV is "production" or
+           process.env.NODE_ENV is "test"
+            @username = process.env.NAME
+            @password = process.env.TOKEN
+        else
+            @username =  Math.random().toString(36)
+            @password = "token"
+    client.setBasicAuth(@username, @password)
+    callback client
+
+
 # Send mail
 exports.sendMail = (data, callback) ->
-    @client = new Client "http://localhost:9101/"
-    path = "mail/"
-    @client.post path, data, (error, response, body) =>
-        if body.error
-            callback body.error
-        else if response.statusCode is 400
-            callback new Error 'Body has not all necessary attributes'
-        else if response.statusCode is 500
-            callback new Error "Server error occured."
-        else
-            callback()
+    getClient (client) =>
+        path = "mail/"
+        client.post path, data, (error, response, body) =>
+            if body.error
+                callback body.error
+            else if response.statusCode is 400
+                callback new Error 'Body has not all necessary attributes'
+            else if response.statusCode is 500
+                callback new Error "Server error occured."
+            else
+                callback()
 
 # Send mail to user
 exports.sendMailToUser = (data, callback) ->
-    @client = new Client "http://localhost:9101/"
-    path = "mail/to-user/"
-    @client.post path, data, (error, response, body) =>
-        if body.error
-            callback body.error
-        else if response.statusCode is 400
-            callback new Error 'Body has not all necessary attributes'
-        else if response.statusCode is 500
-            callback new Error "Server error occured."
-        else
-            callback()
+    getClient (client) =>
+        path = "mail/to-user/"
+        client.post path, data, (error, response, body) =>
+            if body.error
+                callback body.error
+            else if response.statusCode is 400
+                callback new Error 'Body has not all necessary attributes'
+            else if response.statusCode is 500
+                callback new Error "Server error occured."
+            else
+                callback()
 
 # Send mail from user
 exports.sendMailFromUser = (data, callback) ->
-    @client = new Client "http://localhost:9101/"
-    path = "mail/from-user/"
-    @client.post path, data, (error, response, body) =>
-        if body.error?
-            callback body.error
-        else if response.statusCode is 400
-            callback new Error 'Body has not all necessary attributes'
-        else if response.statusCode is 500
-            callback new Error "Server error occured."
-        else
-            callback()
+    getClient (client) =>
+        path = "mail/from-user/"
+        client.post path, data, (error, response, body) =>
+            if body.error?
+                callback body.error
+            else if response.statusCode is 400
+                callback new Error 'Body has not all necessary attributes'
+            else if response.statusCode is 500
+                callback new Error "Server error occured."
+            else
+                callback()
 
 exports.commonRequests =
     checkError: (err) ->
