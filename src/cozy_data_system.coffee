@@ -58,7 +58,7 @@ class exports.CozyDataSystem
         descr.model::saveFile = (path, filePath, callback) ->
             @_adapter().saveFile  @, path, filePath, callback
         descr.model::removeFile = (path, callback) ->
-            @_adapter().removeFile  @, path, callback        
+            @_adapter().removeFile  @, path, callback
         descr.model::attachBinary = (path, data, callback) ->
             @_adapter().attachBinary  @, path, data, callback
         descr.model::getBinary = (path, callback) ->
@@ -296,7 +296,7 @@ class exports.CozyDataSystem
         if error
             callback error
         else if response.statusCode isnt code
-            callback new Error(body)
+            callback new Error(body.error)
         else
             callback null
 
