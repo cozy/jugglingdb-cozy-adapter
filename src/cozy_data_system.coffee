@@ -313,7 +313,7 @@ class exports.CozyDataSystem
             reduce: reduce
             map: """
         function (doc) {
-          if (doc.docType.toLowerCase() === "#{model}") {
+          if (doc.docType.toLowerCase() === "#{model.toLowerCase()}") {
             filter = #{map.toString()};
             filter(doc);
           }
