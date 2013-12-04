@@ -296,7 +296,9 @@ class exports.CozyDataSystem
         if error
             callback error
         else if response.statusCode isnt code
-            callback new Error(body.error)
+            msgStatus = "expected: #{code}, got: #{response.statusCode}"
+            msg = "#{msgStatus} -- #{body.error}"
+            callback new Error msg
         else
             callback null
 
