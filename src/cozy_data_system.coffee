@@ -98,7 +98,7 @@ class exports.CozyDataSystem
                 callback error
             else if response.statusCode is 404
                 callback null, null
-            else if body.docType isnt model
+            else if body.docType.toLowerCase() isnt model.toLowerCase()
                 callback null, null
             else
                 callback null, new @_models[model].model(body)
