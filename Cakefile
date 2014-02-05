@@ -4,7 +4,7 @@ fs = require 'fs'
 task 'tests', 'run tests through mocha', ->
     console.log "Run tests with Mocha..."
     command = "mocha tests.coffee --reporter spec "
-    command += "--require should --compilers coffee:coffee-script --colors"
+    command += "--require should --compilers coffee:coffee-script/register --colors"
     exec command, (err, stdout, stderr) ->
         console.log stdout
         if err
@@ -28,7 +28,7 @@ task "build", "", ->
             console.log "Running coffee-script compiler caught exception: \n" + err
         else
             console.log "Compilation succeeds."
-            
+
         console.log stdout
 
 task "lint", "Run coffeelint on backend files", ->
