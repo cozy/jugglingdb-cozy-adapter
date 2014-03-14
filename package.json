@@ -1,9 +1,11 @@
 {
   "name": "jugglingdb-cozy-adapter",
   "description": "adapter for jugglingdb required by cozy app based on railway",
+  "author": "Cozy Cloud <contact@mycozycloud.com> (http://mycozycloud.com)",
   "keywords": [
     "jugglingdb",
     "adapter",
+    "nosql",
     "cozycloud",
     "node"
   ],
@@ -18,7 +20,6 @@
   "bugs": {
     "url": "https://github.com/mycozycloud/jugglingdb-cozy-adapter/issues"
   },
-  "author": "Cozy Cloud <contact@mycozycloud.com> (http://mycozycloud.com)",
   "contributors": [],
   "engines": {
     "node": ">= 0.6",
