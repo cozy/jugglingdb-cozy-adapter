@@ -1,5 +1,6 @@
 Client = require("request-json").JsonClient
 fs = require 'fs'
+util = require 'util'
 
 exports.initialize = (@schema, callback) ->
     unless schema.settings.url?
@@ -19,7 +20,7 @@ class exports.CozyDataSystem
             @username = process.env.NAME
             @password = process.env.TOKEN
         else
-            @username =  Math.random().toString(36)
+            @username =  Math.random().toString 36
             @password = "token"
 
 
@@ -27,7 +28,7 @@ class exports.CozyDataSystem
     define: (descr) ->
         @_models[descr.model.modelName] = descr
         if @username? and @password?
-            @client.setBasicAuth(@username, @password)
+            @client.setBasicAuth @username, @password
 
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
@@ -74,7 +75,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if not body? or not body.exist?
-                callback new Error("Data system returned invalid data.")
+                callback new Error "Data system returned invalid data."
             else
                 callback null, body.exist
 
@@ -89,7 +90,7 @@ class exports.CozyDataSystem
             else if body.docType.toLowerCase() isnt model.toLowerCase()
                 callback null, null
             else
-                callback null, new @_models[model].model(body)
+                callback null, new @_models[model].model body
 
 
     # Create a new document from given data. If no ID is set a new one
@@ -101,13 +102,13 @@ class exports.CozyDataSystem
             delete data.id
         data.docType = model
 
-        @client.post path, data, (error, response, body) =>
+        @client.post path, data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 409
-                callback new Error("This document already exists")
+                callback new Error "This document already exists"
             else if response.statusCode isnt 201
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback null, body._id
 
@@ -115,26 +116,26 @@ class exports.CozyDataSystem
     # Save all model attributes to DB.
     save: (model, data, callback) ->
         data.docType = model
-        @client.put "data/#{data.id}/", data, (error, response, body) =>
+        @client.put "data/#{data.id}/", data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 404
-                callback new Error("Document not found")
+                callback new Error "Document not found"
             else if response.statusCode isnt 200
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback()
 
 
     # Save only given attributes to DB.
     updateAttributes: (model, id, data, callback) ->
-        @client.put "data/merge/#{id}/", data, (error, response, body) =>
+        @client.put "data/merge/#{id}/", data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 404
-                callback new Error("Document not found")
+                callback new Error "Document not found"
             else if response.statusCode isnt 200
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback()
 
@@ -143,12 +144,12 @@ class exports.CozyDataSystem
     # It requires an ID.
     updateOrCreate: (model, data, callback) ->
         data.docType = model
-        @client.put "data/upsert/#{data.id}/", data, (error, response, body) =>
+        @client.put "data/upsert/#{data.id}/", data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode isnt 200 and
             response.statusCode isnt 201
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else if response.statusCode is 200
                 callback null
             else if response.statusCode is 201
@@ -161,13 +162,13 @@ class exports.CozyDataSystem
     #     note.destroy ->
     #         ...
     destroy: (model, id, callback) ->
-        @client.del "data/#{id}/", (error, response, body) =>
+        @client.del "data/#{id}/", (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 404
-                callback new Error("Document not found")
+                callback new Error "Document not found"
             else if response.statusCode isnt 204
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback()
 
@@ -181,11 +182,11 @@ class exports.CozyDataSystem
     index: (model, fields, callback) ->
         data =
             fields: fields
-        @client.post "data/index/#{model.id}", data, ((error, response, body) =>
+        @client.post "data/index/#{model.id}", data, ((error, response, body) ->
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 callback null
             ), false
@@ -200,11 +201,11 @@ class exports.CozyDataSystem
             query: query
 
         @client.post "data/search/#{model.toLowerCase()}", data, \
-                     (error, response, body) =>
+                     (error, response, body) ->
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 results = []
                 for doc in body.rows
@@ -324,7 +325,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 results = []
                 for doc in body
@@ -343,7 +344,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 callback null, body
 
