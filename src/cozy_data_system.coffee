@@ -201,7 +201,7 @@ class exports.CozyDataSystem
             query: query
 
         @client.post "data/search/#{model.toLowerCase()}", data, \
-                     (error, response, body) ->
+                     (error, response, body) =>
             if error
                 callback error
             else if response.statusCode isnt 200
