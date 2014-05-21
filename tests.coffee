@@ -235,6 +235,63 @@ describe "Create", ->
                 done()
 
 
+    describe "Create a many documents without an id", ->
+
+        before ->
+            @ids = []
+
+        after (done) ->
+            @note1.destroy =>
+                @note2.destroy =>
+                    @note3.destroy =>
+                        done()
+
+        it "When I create a document without an id", (done) ->
+            dataList = [
+                { "title": "cool note many 01", "content": "new note 01" }
+                { "title": "cool note many 02", "content": "new note 02" }
+                { "title": "cool note many 03", "content": "new note 03" }
+            ]
+            Note.createMany dataList, (err, ids) =>
+                @err = err if err
+                @ids = ids
+                done()
+
+        it "Then the ids of the new documents should be returned", ->
+            should.not.exist @err
+            should.exist @ids
+            @ids.length.should.equal 3
+
+        it "And the Document should exist in Database", (done) ->
+            Note.exists @ids[0], (err, isExist) =>
+                should.not.exist err
+                isExist.should.be.ok
+                Note.exists @ids[1], (err, isExist) =>
+                    should.not.exist err
+                    isExist.should.be.ok
+                    Note.exists @ids[2], (err, isExist) =>
+                        should.not.exist err
+                        isExist.should.be.ok
+                        done()
+
+        it "And the documents in DB should equal the sent document", (done) ->
+            Note.find @ids[0], (err, note) =>
+                should.not.exist err
+                note.id.should.equal @ids[0]
+                note.content.should.equal "new note 01"
+                @note1 = note
+                Note.find @ids[1], (err, note) =>
+                    should.not.exist err
+                    note.id.should.equal @ids[1]
+                    note.content.should.equal "new note 02"
+                    @note2 = note
+                    Note.find @ids[2], (err, note) =>
+                        should.not.exist err
+                        note.id.should.equal @ids[2]
+                        note.content.should.equal "new note 03"
+                        @note3 = note
+                        done()
+
 
 describe "Update", ->
 
@@ -556,7 +613,7 @@ describe "Attachments", ->
     describe "Add an attachment", ->
 
         it "When I add an attachment", (done) ->
-            @note.attachFile "./test.png", (err) ->
+            @note.attachFile "./test.png", (err) =>
                 @err = err
                 done()
 

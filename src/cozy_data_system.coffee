@@ -33,6 +33,8 @@ class exports.CozyDataSystem
         if @username? and @password?
             @client.setBasicAuth @username, @password
 
+        descr.model.createMany = (dataList, callback) =>
+            @createMany descr.model.modelName, dataList, callback
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
         descr.model.defineRequest = (name, map, callback) =>
@@ -114,6 +116,22 @@ class exports.CozyDataSystem
                 callback new Error "Server error occured."
             else
                 callback null, body._id
+
+
+    # Create a list of documents sequentially.
+    createMany: (model, dataList, callback) ->
+        ids = []
+        (recCreate = =>
+            if dataList.length is 0
+                callback null, ids.reverse()
+            else
+                data = dataList.pop()
+                @create model, data, (err, id) ->
+                    if err then callback err
+                    else
+                        ids.push id
+                        recCreate()
+        )()
 
 
     # Save all model attributes to DB.
