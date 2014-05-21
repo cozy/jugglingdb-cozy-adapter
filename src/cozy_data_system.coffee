@@ -2,9 +2,12 @@ Client = require("request-json").JsonClient
 fs = require 'fs'
 util = require 'util'
 
+dataSystemHost = process.env.DATASYSTEM_HOST or 'localhost'
+dataSystemPort = process.env.DATASYSTEM_PORT or '9101'
+
 exports.initialize = (@schema, callback) ->
     unless schema.settings.url?
-        schema.settings.url = "http://localhost:9101/"
+        schema.settings.url = "http://#{dataSystemHost}:#{dataSystemPort}/"
 
     schema.adapter = new exports.CozyDataSystem schema
     process.nextTick callback
