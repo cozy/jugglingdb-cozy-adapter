@@ -1,9 +1,13 @@
 Client = require("request-json").JsonClient
 fs = require 'fs'
+util = require 'util'
+
+dataSystemHost = process.env.DATASYSTEM_HOST or 'localhost'
+dataSystemPort = process.env.DATASYSTEM_PORT or '9101'
 
 exports.initialize = (@schema, callback) ->
     unless schema.settings.url?
-        schema.settings.url = "http://localhost:9101/"
+        schema.settings.url = "http://#{dataSystemHost}:#{dataSystemPort}/"
 
     schema.adapter = new exports.CozyDataSystem schema
     process.nextTick callback
@@ -19,7 +23,7 @@ class exports.CozyDataSystem
             @username = process.env.NAME
             @password = process.env.TOKEN
         else
-            @username =  Math.random().toString(36)
+            @username =  Math.random().toString 36
             @password = "token"
 
 
@@ -27,8 +31,10 @@ class exports.CozyDataSystem
     define: (descr) ->
         @_models[descr.model.modelName] = descr
         if @username? and @password?
-            @client.setBasicAuth(@username, @password)
+            @client.setBasicAuth @username, @password
 
+        descr.model.createMany = (dataList, callback) =>
+            @createMany descr.model.modelName, dataList, callback
         descr.model.search = (query, callback) =>
             @search descr.model.modelName, query, callback
         descr.model.defineRequest = (name, map, callback) =>
@@ -67,18 +73,6 @@ class exports.CozyDataSystem
             @_adapter().saveBinary  @, path, filePath, callback
         descr.model::removeBinary = (path, callback) ->
             @_adapter().removeBinary  @, path, callback
-        descr.model::createAccount = (data, callback) ->
-            @_adapter().createAccount @, data, callback
-        descr.model::getAccount = (callback) ->
-            @_adapter().getAccount @, callback
-        descr.model::updateAccount = (data, callback) ->
-            @_adapter().updateAccount @, data, callback
-        descr.model::mergeAccount = (data, callback) ->
-            @_adapter().mergeAccount @, data, callback
-        descr.model::destroyAccount = (callback) ->
-            @_adapter().destroyAccount @, callback
-
-
 
     # Check existence of model in the data system.
     exists: (model, id, callback) ->
@@ -86,7 +80,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if not body? or not body.exist?
-                callback new Error("Data system returned invalid data.")
+                callback new Error "Data system returned invalid data."
             else
                 callback null, body.exist
 
@@ -101,7 +95,7 @@ class exports.CozyDataSystem
             else if body.docType.toLowerCase() isnt model.toLowerCase()
                 callback null, null
             else
-                callback null, new @_models[model].model(body)
+                callback null, new @_models[model].model body
 
 
     # Create a new document from given data. If no ID is set a new one
@@ -113,40 +107,56 @@ class exports.CozyDataSystem
             delete data.id
         data.docType = model
 
-        @client.post path, data, (error, response, body) =>
+        @client.post path, data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 409
-                callback new Error("This document already exists")
+                callback new Error "This document already exists"
             else if response.statusCode isnt 201
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback null, body._id
+
+
+    # Create a list of documents sequentially.
+    createMany: (model, dataList, callback) ->
+        ids = []
+        (recCreate = =>
+            if dataList.length is 0
+                callback null, ids.reverse()
+            else
+                data = dataList.pop()
+                @create model, data, (err, id) ->
+                    if err then callback err
+                    else
+                        ids.push id
+                        recCreate()
+        )()
 
 
     # Save all model attributes to DB.
     save: (model, data, callback) ->
         data.docType = model
-        @client.put "data/#{data.id}/", data, (error, response, body) =>
+        @client.put "data/#{data.id}/", data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 404
-                callback new Error("Document not found")
+                callback new Error "Document not found"
             else if response.statusCode isnt 200
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback()
 
 
     # Save only given attributes to DB.
     updateAttributes: (model, id, data, callback) ->
-        @client.put "data/merge/#{id}/", data, (error, response, body) =>
+        @client.put "data/merge/#{id}/", data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 404
-                callback new Error("Document not found")
+                callback new Error "Document not found"
             else if response.statusCode isnt 200
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback()
 
@@ -155,12 +165,12 @@ class exports.CozyDataSystem
     # It requires an ID.
     updateOrCreate: (model, data, callback) ->
         data.docType = model
-        @client.put "data/upsert/#{data.id}/", data, (error, response, body) =>
+        @client.put "data/upsert/#{data.id}/", data, (error, response, body) ->
             if error
                 callback error
             else if response.statusCode isnt 200 and
             response.statusCode isnt 201
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else if response.statusCode is 200
                 callback null
             else if response.statusCode is 201
@@ -173,13 +183,13 @@ class exports.CozyDataSystem
     #     note.destroy ->
     #         ...
     destroy: (model, id, callback) ->
-        @client.del "data/#{id}/", (error, response, body) =>
+        @client.del "data/#{id}/", (error, response, body) ->
             if error
                 callback error
             else if response.statusCode is 404
-                callback new Error("Document not found")
+                callback new Error "Document not found"
             else if response.statusCode isnt 204
-                callback new Error("Server error occured.")
+                callback new Error "Server error occured."
             else
                 callback()
 
@@ -193,11 +203,11 @@ class exports.CozyDataSystem
     index: (model, fields, callback) ->
         data =
             fields: fields
-        @client.post "data/index/#{model.id}", data, ((error, response, body) =>
+        @client.post "data/index/#{model.id}", data, ((error, response, body) ->
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 callback null
             ), false
@@ -216,7 +226,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 results = []
                 for doc in body.rows
@@ -266,6 +276,8 @@ class exports.CozyDataSystem
 
         urlPath = "data/#{model.id}/binaries/"
         @client.sendFile urlPath, path, data, (error, response, body) =>
+            try
+                body = JSON.parse(body)
             @checkError error, response, body, 201, callback
 
 
@@ -336,7 +348,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 results = []
                 for doc in body
@@ -355,7 +367,7 @@ class exports.CozyDataSystem
             if error
                 callback error
             else if response.statusCode isnt 200
-                callback new Error(body)
+                callback new Error util.inspect body
             else
                 callback null, body
 
@@ -414,147 +426,6 @@ class exports.CozyDataSystem
     whatTypeName: (model, propName) ->
         ds = @schema.definitions[model]
         return ds.properties[propName] && ds.properties[propName].type.name
-
-
-    # Find an account with its ID. Returns it if it is found else it
-    # returns null
-    getAccount: (model, callback) ->
-        @exists model, model.id, (err, res) =>
-            if err
-                callback err
-            else if not res
-                callback new Error("The linked model doesn't exist")
-            else
-                if not model.account?
-                    callback new Error("The model doesn't have an account")
-                else
-                    @client.get "account/#{model.account}/", (err, res, body) =>
-                        if err
-                            callback err
-                        else if res.statusCode is 404
-                            callback new Error("The account desn't exist")
-                        else if res.statusCode is 402
-                            callback new Error("Data are corrupted")
-                        else if body.docType isnt "Account"
-                            callback new Error("The document isn't an account")
-                        else
-                            callback null, body
-
-
-    # Create a new account from given data.
-    createAccount: (model, data, callback) ->
-        @exists model, model.id, (err, res) =>
-            if err
-                callback err
-            else if not res
-                callback new Error("The linked model doesn't exist")
-            else
-                if model.account?
-                    callback new Error("The model has already an account")
-                else
-                    data =
-                        login: data.login
-                        password: data.password
-                    @client.post 'account/', data, (err, res, body) =>
-                        if err
-                            callback err
-                        else if res.statusCode is 401
-                            callback new Error("The account doesn't have a field
-                                'password'")
-                        else if res.statusCode isnt 201
-                            callback new Error("Server error occured.")
-                        else
-                            data = account: body._id
-                            @updateAttributes model, model.id, data, (err) =>
-                                if err
-                                    callback err
-                                else
-                                    model.account = body._id
-                                    data._id = body._id
-                                    callback null, data
-
-
-    # Update all account attributes to DB.
-    updateAccount: (model, data, callback) ->
-        @exists model, model.id, (err, res) =>
-            if err
-                callback err
-            else if not res
-                callback new Error("The linked model doesn't exist")
-            else
-                if not model.account?
-                    callback new Error("The model doesn't have an account")
-                else
-                    data =
-                        login: data.login
-                        password: data.password
-                    @client.put "account/#{model.account}/", data,
-                    ((err, res, body) =>
-                        if err
-                            callback err
-                        else if res.statusCode is 404
-                            callback new Error("Document not found")
-                        else if res.statusCode is 401
-                            callback new Error("The account doesn't have a field
-                             'password'")
-                        else if res.statusCode isnt 200
-                            callback new Error("Server error occured.")
-                        else
-                            callback()
-                    ), false
-
-
-    # Update only given attributes to DB.
-    mergeAccount: (model, data, callback) ->
-        @exists model, model.id, (err, res) =>
-            if err
-                callback err
-            else if not res
-                callback new Error("The linked model doesn't exist")
-            else
-                if not model.account?
-                    callback new Error("The model doesn't have an account")
-                else
-                    @client.put "account/merge/#{model.account}/", data,
-                    (err, res, body) =>
-                        if err
-                            callback err
-                        else if res.statusCode is 404
-                            callback new Error("Document not found")
-                        else if res.statusCode isnt 200
-                            callback new Error("Server error occured.")
-                        else
-                            callback()
-
-
-    # Destroy account in database.
-    destroyAccount: (model, callback) ->
-        @exists model, model.id, (err, res) =>
-            if err
-                callback err
-            else if not res
-                callback new Error("The linked model doesn't exist")
-            else
-                if not model.account?
-                    callback new Error("The model doesn't have an account")
-                else
-                    url = "account/#{model.account}/"
-                    @client.del url, ((err, res, body) =>
-                        if err
-                            callback err
-                        else if res.statusCode is 404
-                            callback new Error("Document not found")
-                        else if res.statusCode isnt 204
-                            callback new Error("Server error occured.")
-                        else
-                            data = account: null
-                            @updateAttributes model, model.id, data, (err) =>
-                                if err
-                                    callback err
-                                else
-                                    model.account = null
-                                    callback null
-                        ), false
 
 getClient = (callback) ->
     client = new Client "http://localhost:9101/"
