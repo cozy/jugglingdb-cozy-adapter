@@ -276,6 +276,8 @@ class exports.CozyDataSystem
 
         urlPath = "data/#{model.id}/binaries/"
         @client.sendFile urlPath, path, data, (error, response, body) =>
+            try
+                body = JSON.parse(body)
             @checkError error, response, body, 201, callback
 
 
