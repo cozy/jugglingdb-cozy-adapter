@@ -35,8 +35,8 @@ class exports.CozyDataSystem
 
         descr.model.createMany = (dataList, callback) =>
             @createMany descr.model.modelName, dataList, callback
-        descr.model.search = (query, callback) =>
-            @search descr.model.modelName, query, callback
+        descr.model.search = (options, callback) =>
+            @search descr.model.modelName, options, callback
         descr.model.defineRequest = (name, map, callback) =>
             @defineRequest descr.model.modelName, name, map, callback
         descr.model.request = (name, params, callback) =>
@@ -217,9 +217,19 @@ class exports.CozyDataSystem
     # ex: Note.search "dragon", (err, docs) ->
     # ...
     #
-    search: (model, query, callback) ->
-        data =
-            query: query
+    search: (model, options, callback) ->
+
+        # ensures backward compatibility
+        if typeof options is "string"
+            query = options
+            numPage = 1
+            numByPage = 10
+        else
+            query = options.query
+            numPage = options.numPage or 1
+            numByPage = options.numByPage or 10
+
+        data = {query, numPage, numByPage}
 
         @client.post "data/search/#{model.toLowerCase()}", data, \
                      (error, response, body) =>
