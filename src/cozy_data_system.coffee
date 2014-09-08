@@ -222,8 +222,15 @@ class exports.CozyDataSystem
                 else if type.length > 0
                     fieldsType[field] = type
 
-        data = {fields, fieldsType}
+        # If the user has defined a map function for the  field, we forward
+        # it to the data system
+        mappedValues = {}
+        for field in fields
+            property = properties[field]
+            if property.indexerMap? and property.indexerMap instanceof Function
+                mappedValues[field] = property.indexerMap model[field]
 
+        data = {fields, fieldsType, mappedValues}
         @client.post "data/index/#{model.id}", data, ((error, response, body) ->
             if error
                 callback error
