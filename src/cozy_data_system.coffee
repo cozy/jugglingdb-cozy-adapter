@@ -257,7 +257,9 @@ class exports.CozyDataSystem
             numPage = options.numPage or 1
             numByPage = options.numByPage or 10
 
-        data = {query, numPage, numByPage}
+        showNumResults = true
+
+        data = {query, numPage, numByPage, showNumResults}
 
         @client.post "data/search/#{model.toLowerCase()}", data, \
                      (error, response, body) =>
@@ -266,11 +268,12 @@ class exports.CozyDataSystem
             else if response.statusCode isnt 200
                 callback new Error util.inspect body
             else
+                numResults = body.numResults
                 results = []
                 for doc in body.rows
                     results.push new @_models[model].model(doc)
                     doc.id = doc._id if doc._id?
-                callback null, results
+                callback null, {results, numResults}
 
 
     # Save a file into data system and attach it to current model.
