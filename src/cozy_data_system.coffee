@@ -56,7 +56,7 @@ class exports.CozyDataSystem
         descr.model._forDB = (data) =>
             @_forDB descr.model.modelName, data
         descr.model::index = (fields, callback) ->
-            @_adapter().index @, fields, callback
+            @_adapter().index @, fields, descr.properties, callback
         descr.model::attachFile = (path, data, callback) ->
             @_adapter().attachFile  @, path, data, callback
         descr.model::getFile = (path, callback) ->
@@ -200,9 +200,30 @@ class exports.CozyDataSystem
     # ex: note.index ["content", "title"], (err) ->
     #  ...
     #
-    index: (model, fields, callback) ->
-        data =
-            fields: fields
+    index: (model, fields, properties, callback) ->
+
+        # Gets fields type based on JugglingDB types so they can be forwarded
+        # to the indexer
+        fieldsType = {}
+        for field in fields
+            property = properties[field]
+            if property.type?
+                # Extracts the type from the function name
+                rawType = property.type.toString()
+                type = rawType.replace 'function ', ''
+                type = type.substr 0, type.indexOf '('
+                type = type.toLowerCase()
+
+                # indexerType option can force a type
+                if property.indexerType?.length > 0
+                    fieldsType[field] = property.indexerType
+
+                # Sets the field type only if it has been detected
+                else if type.length > 0
+                    fieldsType[field] = type
+
+        data = {fields, fieldsType}
+
         @client.post "data/index/#{model.id}", data, ((error, response, body) ->
             if error
                 callback error
