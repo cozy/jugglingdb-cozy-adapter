@@ -205,22 +205,26 @@ class exports.CozyDataSystem
         # Gets fields type based on JugglingDB types so they can be forwarded
         # to the indexer
         fieldsType = {}
+        typeRegex = /function ([\w]+).*/i
         for field in fields
             property = properties[field]
             if property.type?
-                # Extracts the type from the function name
-                rawType = property.type.toString()
-                type = rawType.replace 'function ', ''
-                type = type.substr 0, type.indexOf '('
-                type = type.toLowerCase()
 
                 # indexerType option can force a type
-                if property.indexerType?.length > 0
+                if property.indexerType?
                     fieldsType[field] = property.indexerType
 
-                # Sets the field type only if it has been detected
-                else if type.length > 0
-                    fieldsType[field] = type
+                else
+                    # Extracts the type from the function name
+                    rawType = property.type.toString()
+                    type = typeRegex.exec rawType
+
+                    # Sets the field type only if it has been detected
+                    if type?
+                        type = type[1]
+                        type = type.toLowerCase()
+                        fieldsType[field] = type
+        #console.log fields, fieldsType
 
         # If the user has defined a map function for the  field, we forward
         # it to the data system
@@ -273,7 +277,12 @@ class exports.CozyDataSystem
                 for doc in body.rows
                     results.push new @_models[model].model(doc)
                     doc.id = doc._id if doc._id?
-                callback null, {results, numResults}
+
+                # Ensures BC
+                if numResults?
+                    callback null, {results, numResults}
+                else
+                    callback null, results
 
 
     # Save a file into data system and attach it to current model.
