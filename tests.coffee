@@ -549,6 +549,7 @@ describe "Search features", ->
             done()
 
 
+
     describe "index", ->
 
         before (done) ->
@@ -586,10 +587,52 @@ describe "Search features", ->
                 done()
 
         it "Then result is the second note I created", ->
+            @notes.length.should.equal 1
+            @notes[0].title.should.equal "Note 02"
+            @notes[0].content.should.equal "great dragons are coming"
 
-            #@notes.length.should.equal 1
-            #@notes[0].title.should.equal "Note 02"
-            #@notes[0].content.should.equal "great dragons are coming"
+    describe "retrieve notes with result numbers", ->
+
+        before (done) ->
+            client.del "data/index/clear-all/", (err, response) ->
+                done()
+
+        it "When given I index four notes", (done) ->
+            data = ids: [dragonNoteId], numResults: 1
+            @indexer = fakeServer data, 200, (url, body) ->
+                if url is '/index/'
+                    should.exist body.fields
+                    should.exist body.doc
+                    should.exist body.doc.docType
+                    200
+                else if url is '/search/'
+                    should.exist body.query
+                    body.query.should.equal "dragons"
+                    200
+                else 204
+            @indexer.listen 9102
+            setTimeout done, 500
+
+        it "When I search again with the options", (done) ->
+            options =
+                query: "dragons"
+                numPage: 1
+                numByPage: 10
+
+            Note.search options, (err, notes) =>
+                @notes = notes
+                @indexer.close()
+                done()
+
+        it "Then result should be made of the results themselves and the total number of results", ->
+            {results, numResults} = @notes
+            should.exist results
+            should.exist numResults
+
+            results.length.should.equal 1
+            results[0].title.should.equal "Note 02"
+            results[0].content.should.equal "great dragons are coming"
+            numResults.should.equal 1
 
 
 ### Attachments ###
