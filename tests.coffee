@@ -14,6 +14,8 @@ schema.settings = {}
 process.env.NAME = "test"
 process.env.TOKEN = "token"
 
+indexerPort = if process.env.NODE_ENV is 'test' then 9092 else 9102
+
 require("./src/cozy_data_system").initialize(schema)
 
 client.setBasicAuth "test", "token"
@@ -575,7 +577,7 @@ describe "Search features", ->
                         body.query.should.equal "dragons"
                         200
                     else 204
-                @indexer.listen 9102
+                @indexer.listen indexerPort
                 setTimeout done, 500
 
 
@@ -610,7 +612,7 @@ describe "Search features", ->
                     body.query.should.equal "dragons"
                     200
                 else 204
-            @indexer.listen 9102
+            @indexer.listen indexerPort
             setTimeout done, 500
 
         it "When I search again with the options", (done) ->
