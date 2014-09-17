@@ -56,7 +56,7 @@ class exports.CozyDataSystem
         descr.model._forDB = (data) =>
             @_forDB descr.model.modelName, data
         descr.model::index = (fields, callback) ->
-            @_adapter().index @, fields, callback
+            @_adapter().index @, fields, descr.properties, callback
         descr.model::attachFile = (path, data, callback) ->
             @_adapter().attachFile  @, path, data, callback
         descr.model::getFile = (path, callback) ->
@@ -200,9 +200,53 @@ class exports.CozyDataSystem
     # ex: note.index ["content", "title"], (err) ->
     #  ...
     #
-    index: (model, fields, callback) ->
-        data =
-            fields: fields
+    index: (model, fields, properties, callback) ->
+
+        # Gets field type based on JugglingDB types so it can be forwarded
+        # to the indexer.
+        # Extracts the name of a function
+        typeRegex = /function ([\w]+).*/i
+        getFieldType = (property) ->
+            # if the field has no type specified, it won't have an improved
+            # behaviour
+            if property.type?
+
+                # the developer can use the `indexerType` field to force a type
+                if property.indexerType?
+                    return property.indexerType
+                else
+                    # extracts the type from the function name
+                    rawType = property.type.toString()
+                    type = typeRegex.exec rawType
+
+                    # sets the field type only if it has been extracted
+                    if type?
+                        # successful regex match is an array where result
+                        # is at index 1
+                        type = type[1]
+                        type = type.toLowerCase()
+                        return type
+
+        # If the user has defined a map function for the  field, we forward
+        # it to the data system
+        getMappedValue = (property, field) ->
+            if property.indexerMap? and property.indexerMap instanceof Function
+                return property.indexerMap model[field]
+
+        # Process all the fields to get the fields type and the mapped values
+        fieldsType = {}
+        mappedValues = {}
+        for field in fields
+            property = properties[field]
+
+            if (fieldType = getFieldType property)?
+                fieldsType[field] = fieldType
+
+            if (mappedValue = getMappedValue property, field)?
+                mappedValues[field] = mappedValue
+
+
+        data = {fields, fieldsType, mappedValues}
         @client.post "data/index/#{model.id}", data, ((error, response, body) ->
             if error
                 callback error
@@ -224,12 +268,14 @@ class exports.CozyDataSystem
             query = options
             numPage = 1
             numByPage = 10
+            showNumResults = false
         else
             query = options.query
             numPage = options.numPage or 1
             numByPage = options.numByPage or 10
+            showNumResults = true
 
-        data = {query, numPage, numByPage}
+        data = {query, numPage, numByPage, showNumResults}
 
         @client.post "data/search/#{model.toLowerCase()}", data, \
                      (error, response, body) =>
@@ -238,11 +284,17 @@ class exports.CozyDataSystem
             else if response.statusCode isnt 200
                 callback new Error util.inspect body
             else
+                numResults = body.numResults
                 results = []
                 for doc in body.rows
                     results.push new @_models[model].model(doc)
                     doc.id = doc._id if doc._id?
-                callback null, results
+
+                # ensures backward compatibility
+                if numResults?
+                    callback null, {results, numResults}
+                else
+                    callback null, results
 
 
     # Save a file into data system and attach it to current model.
