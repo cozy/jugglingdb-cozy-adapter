@@ -92,6 +92,9 @@ class exports.CozyDataSystem
                 callback error
             else if response.statusCode is 404
                 callback null, null
+            else if response.statusCode isnt 200
+                try callback new Error "Data system failed " + JSON.stringify body
+                catch err then callback new Error "Data system failed"
             else if body.docType.toLowerCase() isnt model.toLowerCase()
                 callback null, null
             else
