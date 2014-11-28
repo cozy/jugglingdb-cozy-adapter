@@ -73,6 +73,8 @@ class exports.CozyDataSystem
             @_adapter().saveBinary  @, path, filePath, callback
         descr.model::removeBinary = (path, callback) ->
             @_adapter().removeBinary  @, path, callback
+        descr.model::convertBinary = (callback) ->
+            @_adapter().convertBinary  @, callback
 
     # Check existence of model in the data system.
     exists: (model, id, callback) ->
@@ -366,6 +368,19 @@ class exports.CozyDataSystem
         urlPath = "data/#{model.id}/binaries/#{path}"
         @client.del urlPath, (error, response, body) =>
             @checkError error, response, body, 204, callback
+
+
+    # Convert binary from _attachment to binary
+    convertBinary: (model, callback) ->
+        @client.get "data/#{model.id}/binaries/convert", (error, response, body) ->
+            if error
+                callback error
+            else if response.statusCode is 404
+                callback new Error "Document not found"
+            else if response.statusCode isnt 200
+                callback new Error "Server error occured."
+            else
+                callback()
 
 
     # Check if an error occurred. If any, it returns an a proper error.
